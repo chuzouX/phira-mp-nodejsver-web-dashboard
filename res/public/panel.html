@@ -10,7 +10,7 @@
 </head>
 <body>
     <script>(function(){
-        const t=localStorage.getItem('theme');if(t==='dark')document.body.classList.add('dark-mode');
+        const t=localStorage.getItem('theme');if(t==='light')document.body.classList.add('light-mode');
         I18n.init();
     })()</script>
 
@@ -20,7 +20,7 @@
             <div class="footer-controls" style="margin: 0;">
                 <a href="/" class="back-link" style="margin: 0;" data-i18n="common.back_home">Back to Home</a>
                 <button id="theme-toggle" class="theme-toggle-btn">
-                    <span id="theme-icon" class="theme-icon">🌙</span>
+                    <span id="theme-icon" class="theme-icon">Dark</span>
                 </button>
             </div>
         </header>
@@ -29,28 +29,24 @@
             <!-- Server Control -->
             <section class="panel-card">
                 <h2 data-i18n="admin.server_control">Server Control</h2>
-                
                 <div class="ban-add-section">
                     <strong data-i18n="room.admin.message">Global Broadcast</strong>
-                    <div class="room-selector-container" style="margin-top: 15px;">
+                    <div class="room-selector-container">
                         <div class="select-all-row">
                             <input type="checkbox" id="broadcast-all-rooms" onchange="toggleSelectAll('broadcast')" checked>
                             <label for="broadcast-all-rooms">Select All Rooms</label>
                         </div>
-                        <div id="broadcast-room-chips" class="room-chip-container" style="display: none;">
-                            <!-- Room chips will be injected here -->
-                        </div>
+                        <div id="broadcast-room-chips" class="room-chip-container" style="display: none;"></div>
                     </div>
                     <div class="action-group">
-                        <input type="text" id="broadcast-content" data-i18n-placeholder="admin.content_required" style="flex: 1;">
-                        <button onclick="adminAction('broadcast')" class="admin-btn action-primary" data-i18n="admin.send">Send</button>
+                        <input type="text" id="broadcast-content" placeholder="Message" style="flex: 1;">
+                        <button onclick="adminAction('broadcast')" class="admin-btn action-primary">Send</button>
                     </div>
                 </div>
-
-                <div class="action-group" style="margin-top: 20px; padding: 0 10px;">
-                    <span style="font-weight: bold;" data-i18n="admin.room_creation">Room Creation:</span>
-                    <button onclick="adminAction('enable_creation')" class="admin-btn action-success" data-i18n="admin.enable">Enable</button>
-                    <button onclick="adminAction('disable_creation')" class="admin-btn action-warning" data-i18n="admin.disable">Disable</button>
+                <div class="action-group" style="margin-top:12px">
+                    <span style="font-weight:600;font-size:0.8rem;">Room Creation:</span>
+                    <button onclick="adminAction('enable_creation')" class="admin-btn action-success">Enable</button>
+                    <button onclick="adminAction('disable_creation')" class="admin-btn action-warning">Disable</button>
                 </div>
             </section>
 
@@ -58,23 +54,21 @@
             <section class="panel-card">
                 <h2 data-i18n="room.admin.bulk_action">Bulk Room Control</h2>
                 <div class="ban-add-section">
+                    <strong style="margin-bottom:8px;display:block;">Target Rooms</strong>
                     <div class="room-selector-container">
                         <div class="select-all-row">
                             <input type="checkbox" id="bulk-all-rooms" onchange="toggleSelectAll('bulk')" checked>
                             <label for="bulk-all-rooms">Select All Rooms</label>
                         </div>
-                        <div id="bulk-room-chips" class="room-chip-container" style="display: none;">
-                            <!-- Room chips will be injected here -->
-                        </div>
+                        <div id="bulk-room-chips" class="room-chip-container" style="display: none;"></div>
                     </div>
-                    <div class="action-group" style="margin-top: 20px;">
-                        <button onclick="adminAction('close_bulk')" class="admin-btn action-danger" data-i18n="admin.close_all">Close All</button>
-                        <button onclick="adminAction('lock_bulk')" class="admin-btn action-warning" data-i18n="admin.lock_all">Lock All</button>
-                        <button onclick="adminAction('unlock_bulk')" class="admin-btn action-success" data-i18n="admin.unlock_all">Unlock All</button>
-                        <div style="display: flex; gap: 10px; align-items: center; border-left: 2px solid var(--border); padding-left: 20px; margin-left: 10px;">
-                            <input type="number" id="bulk-size" placeholder="Size" style="width: 80px;">
-                            <button onclick="adminAction('size_bulk')" class="admin-btn action-warning" style="margin:0;" data-i18n="admin.set_size">Set Size</button>
-                        </div>
+                    <div class="action-group">
+                        <button onclick="adminAction('close_bulk')" class="admin-btn action-danger">Close All</button>
+                        <button onclick="adminAction('lock_bulk')" class="admin-btn action-warning">Lock All</button>
+                        <button onclick="adminAction('unlock_bulk')" class="admin-btn action-success">Unlock All</button>
+                        <span style="color:var(--text-tertiary);margin:0 4px;">|</span>
+                        <input type="number" id="bulk-size" placeholder="Size" style="width:70px;">
+                        <button onclick="adminAction('size_bulk')" class="admin-btn action-warning">Set Size</button>
                     </div>
                 </div>
             </section>
@@ -82,57 +76,29 @@
             <!-- Ban Management -->
             <section class="panel-card">
                 <h2 data-i18n="ban.manage_title">Ban List Management</h2>
-                
-                <div class="ban-section">
-                    <h3 data-i18n="ban.user_id_bans">User ID Bans</h3>
-                    <div class="ban-table-container">
-                        <table class="ban-table">
-                            <thead>
-                                <tr>
-                                    <th data-i18n="ban.target">Target</th>
-                                    <th data-i18n="ban.reason">Reason</th>
-                                    <th data-i18n="ban.expires">Expires</th>
-                                    <th data-i18n="ban.admin">Admin</th>
-                                    <th data-i18n="room.status">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="id-ban-list-body"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="ban-section" style="margin-top: 30px;">
-                    <h3 data-i18n="ban.ip_bans">In-game IP Bans</h3>
-                    <div class="ban-table-container">
-                        <table class="ban-table">
-                            <thead>
-                                <tr>
-                                    <th data-i18n="ban.target">Target</th>
-                                    <th data-i18n="ban.reason">Reason</th>
-                                    <th data-i18n="ban.expires">Expires</th>
-                                    <th data-i18n="ban.admin">Admin</th>
-                                    <th data-i18n="room.status">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="ip-ban-list-body"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="ban-add-section">
-                    <h4 data-i18n="ban.ban_user">Ban User/IP</h4>
-                    <div class="action-group" style="margin-top: 10px;">
-                        <select id="ban-type-select" onchange="updateBanTargetUI()">
-                            <option value="id" data-i18n="ban.type_user_id">User ID</option>
-                            <option value="ip" data-i18n="ban.type_game_ip">In-game IP</option>
-                        </select>
-                        <div id="ban-target-container" style="display: flex; flex: 1; min-width: 150px;">
-                            <input type="text" id="ban-target-input" list="ban-target-list" data-i18n-placeholder="ban.target_placeholder" style="width: 100%;">
-                            <datalist id="ban-target-list"></datalist>
+                <div class="ban-columns">
+                    <div class="ban-section">
+                        <h4 data-i18n="ban.user_id_bans">User ID Bans</h4>
+                        <div class="ban-table-container">
+                            <table class="ban-table"><thead><tr><th data-i18n="ban.target">Target</th><th data-i18n="ban.reason">Reason</th><th data-i18n="ban.expires">Expires</th><th>Action</th></tr></thead><tbody id="id-ban-list-body"></tbody></table>
                         </div>
-                        <input type="number" id="ban-duration-input" data-i18n-placeholder="ban.duration_placeholder" style="width: 120px;">
-                        <input type="text" id="ban-reason-input" data-i18n-placeholder="ban.reason_placeholder" style="flex: 1;">
-                        <button onclick="executeBan()" class="admin-btn action-danger">OK</button>
+                    </div>
+                    <div class="ban-section">
+                        <h4 data-i18n="ban.ip_bans">In-game IP Bans</h4>
+                        <div class="ban-table-container">
+                            <table class="ban-table"><thead><tr><th data-i18n="ban.target">Target</th><th data-i18n="ban.reason">Reason</th><th data-i18n="ban.expires">Expires</th><th>Action</th></tr></thead><tbody id="ip-ban-list-body"></tbody></table>
+                        </div>
+                    </div>
+                </div>
+                <div class="ban-add-section">
+                    <strong data-i18n="ban.ban_user">Ban User/IP</strong>
+                    <div class="action-group">
+                        <select id="ban-type-select" onchange="updateBanTargetUI()"><option value="id">User ID</option><option value="ip">Game IP</option></select>
+                        <input type="text" id="ban-target-input" list="ban-target-list" placeholder="Target" style="flex:1">
+                        <datalist id="ban-target-list"></datalist>
+                        <input type="number" id="ban-duration-input" placeholder="Seconds" style="width:100px">
+                        <input type="text" id="ban-reason-input" placeholder="Reason" style="flex:1">
+                        <button onclick="executeBan()" class="admin-btn action-danger">Ban</button>
                     </div>
                 </div>
             </section>
@@ -465,9 +431,9 @@
         // Theme Toggle
         const themeToggle = document.getElementById('theme-toggle');
         themeToggle.addEventListener('click', () => {
-            const isDark = document.body.classList.toggle('dark-mode');
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
-            document.getElementById('theme-icon').textContent = isDark ? '☀️' : '🌙';
+            const isLight = document.body.classList.toggle('light-mode');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+            document.getElementById('theme-icon').textContent = isLight ? 'Light' : 'Dark';
         });
 
         // Init
@@ -483,8 +449,8 @@
             setInterval(fetchOnlinePlayers, 5000);
             setInterval(fetchLoginBlacklist, 10000);
 
-            const isDark = document.body.classList.contains('dark-mode');
-            document.getElementById('theme-icon').textContent = isDark ? '☀️' : '🌙';
+            const isLight = document.body.classList.contains('light-mode');
+            document.getElementById('theme-icon').textContent = isLight ? 'Light' : 'Dark';
 
             if (window.SERVER_CONFIG && window.SERVER_CONFIG.displayIp) {
                 document.getElementById('server-ip').textContent = window.SERVER_CONFIG.displayIp;

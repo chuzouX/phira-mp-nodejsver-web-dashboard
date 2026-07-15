@@ -117,7 +117,7 @@
     "invalid_size": "人数格式不正确",
     "action_failed": "操作失败",
     "confirm_bulk": "确定要对范围 “{target}” 执行此操作吗？",
-    "footer_version": "FunXLink Studio Phira 管理后台 v1.0"
+    "footer_version": "FunXLink Studio Phira 管理后台 v1.3"
   },
   "players": {
     "title": "在线玩家列表",
@@ -146,5 +146,70 @@
     "duration_placeholder": "时长 (秒，留空为永久)",
     "reason_placeholder": "请输入封禁原因",
     "confirm_unban": "确定要解封 {target} 吗？"
+  },
+  "nav": {
+    "home": "首页",
+    "rooms": "房间",
+    "players": "玩家",
+    "admin": "管理",
+    "login": "登录"
+  },
+  "home": {
+    "welcome": "欢迎来到 Phira Server",
+    "description": "探索精彩的音乐游戏世界，与全球玩家一起享受节奏的乐趣",
+    "online": "在线玩家",
+    "rooms": "房间数",
+    "version": "版本",
+    "server_info": "服务器信息",
+    "server_name": "服务器名称",
+    "server_ip": "服务器 IP",
+    "copy_ip": "复制 IP",
+    "quick_actions": "快捷操作",
+    "browse_rooms": "浏览房间",
+    "view_players": "查看玩家",
+    "login_to": "登录管理"
+  },
+  "rooms": {
+    "title": "房间列表",
+    "no_rooms": "暂无房间"
+  },
+  "players": {
+    "title": "在线玩家",
+    "no_players": "暂无在线玩家"
+  },
+  "admin": {
+    "title": "管理面板",
+    "login_required": "请先登录以访问管理面板",
+    "server_control": "服务器控制",
+    "broadcast": "全服广播",
+    "send": "发送",
+    "ban_management": "封禁管理",
+    "system_info": "系统信息"
+  },
+  "auth": {
+    "login_tab": "登录",
+    "register_tab": "注册",
+    "login_title": "欢迎回来",
+    "register_title": "创建账号",
+    "email": "邮箱",
+    "password": "密码",
+    "confirm_password": "确认密码",
+    "login_btn": "登录",
+    "register_btn": "注册"
+  },
+  "profile": {
+    "title": "个人中心",
+    "rooms": "房间数",
+    "play_time": "游玩时长",
+    "account_settings": "账号设置",
+    "nickname": "昵称",
+    "change_password": "修改密码",
+    "save_settings": "保存设置",
+    "session_info": "会话信息",
+    "login_time": "登录时间",
+    "expire_time": "过期时间",
+    "current_ip": "当前 IP",
+    "recent_activity": "最近活动",
+    "no_activity": "暂无活动记录"
   }
 }

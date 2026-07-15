@@ -12,13 +12,13 @@
     <script>
         (function(){
             const t = localStorage.getItem('theme');
-            if (t === 'dark') document.body.classList.add('dark-mode');
+            if (t === 'light') document.body.classList.add('light-mode');
             I18n.init();
         })()
     </script>
     <div style="display: flex; justify-content: center; align-items: center; min-height: 100vh; width: 100%; padding: 24px; box-sizing: border-box;">
         <div class="login-card">
-            <h2>🔐 登录</h2>
+            <h2>Login</h2>
             <form id="login-form">
                 <div class="form-group">
                     <label for="email">邮箱</label>
@@ -31,7 +31,7 @@
                 <button type="submit" class="login-btn" id="login-btn">登录</button>
                 <div class="error-message" id="error-message" style="display: none;"></div>
             </form>
-            <a href="/" class="back-link" style="display: block; text-align: center; margin-top: 20px;">← 返回首页</a>
+            <a href="/" class="back-link" style="display: block; text-align: center; margin-top: 20px;">Back to Home</a>
         </div>
     </div>
     <script>

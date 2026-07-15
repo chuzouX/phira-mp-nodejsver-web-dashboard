@@ -10,7 +10,6 @@ import type { PluginModule, PluginApi, ServerConfig, RoomManager, ProtocolHandle
 const version: string = (() => {
   try { return require('../../package.json').version; } catch { return 'unknown'; }
 })();
-import { v4 as uuidv4 } from 'uuid';
 
 interface AdminSession extends session.SessionData {
   isAdmin?: boolean;
@@ -607,15 +606,74 @@ class WebDashboardPlugin {
       }
     });
 
-    // Admin APIs
-    this.app.get('/api/all-players', this.verifyUserRole('Admin').bind(this), this.rateLimitMiddleware.bind(this), (_req, res) => {
-      const allPlayers = this.protocolHandler.getAllSessions().map(p => ({
-        ...p,
-        isAdmin: this.config.adminPhiraId.includes(p.id),
-        isOwner: this.config.ownerPhiraId.includes(p.id),
-        ip: p.ip,
-      }));
-      return res.json(allPlayers);
+    // User profile proxy (avoids CORS)
+    this.app.get('/api/user-profile', async (req, res) => {
+      let token: string | undefined = undefined;
+      if (req.cookies && req.cookies['access_token']) {
+        token = req.cookies['access_token'];
+      }
+      if (!token) {
+        const authHeader = req.headers['authorization'];
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+          token = authHeader.substring(7);
+        }
+      }
+      if (!token) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      const session = this.userSessions.get(token);
+      if (!session || Date.now() > session.expiresAt) {
+        return res.status(401).json({ error: 'Invalid or expired session' });
+      }
+      try {
+        const response = await fetch('https://phira.5wyxi.com/me', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (!response.ok) {
+          return res.status(response.status).json({ error: 'Upstream error' });
+        }
+        const data = await response.json();
+        return res.json(data);
+      } catch (e: any) {
+        return res.status(500).json({ error: 'Failed to fetch profile' });
+      }
+    });
+
+    // Players API (public: only players in public rooms; admin: all players)
+    this.app.get('/api/all-players', this.rateLimitMiddleware.bind(this), (req, res) => {
+      let token: string | undefined = undefined;
+      if (req.cookies && req.cookies['access_token']) { token = req.cookies['access_token']; }
+      if (!token) {
+        const authHeader = req.headers['authorization'];
+        if (authHeader && authHeader.startsWith('Bearer ')) { token = authHeader.substring(7); }
+      }
+      const session = token ? this.userSessions.get(token) : undefined;
+      const isAdmin = session && (session.isAdmin || session.isOwner) && Date.now() <= session.expiresAt;
+      if (isAdmin) {
+        const allPlayers = this.protocolHandler.getAllSessions().map(p => ({
+          ...p,
+          isAdmin: this.config.adminPhiraId.includes(p.id),
+          isOwner: this.config.ownerPhiraId.includes(p.id),
+          ip: p.ip,
+        }));
+        return res.json(allPlayers);
+      }
+      const allRooms = this.roomManager.listRooms();
+      const publicRoomIds = new Set(allRooms.filter(room => {
+        if (this.config.enablePubWeb) return room.id.startsWith(this.config.pubPrefix!);
+        if (this.config.enablePriWeb) return !room.id.startsWith(this.config.priPrefix!);
+        return true;
+      }).map(r => r.id));
+      const publicPlayers = this.protocolHandler.getAllSessions()
+        .filter(p => p.roomId && publicRoomIds.has(p.roomId))
+        .map(p => ({
+          id: p.id,
+          name: p.name,
+          roomId: p.roomId,
+          isAdmin: this.config.adminPhiraId.includes(p.id),
+          isOwner: this.config.ownerPhiraId.includes(p.id),
+        }));
+      return res.json(publicPlayers);
     });
 
     this.app.post('/api/admin/server-message', this.verifyUserRole('Admin').bind(this), (req, res) => {

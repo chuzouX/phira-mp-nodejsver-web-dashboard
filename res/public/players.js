@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const homeLink = `<a href="/">${content}</a>`;
         
         if (isAdmin) {
-            totalPlayersDiv.innerHTML = `${homeLink}<a href="/logout" class="logout-icon" title="Logout">&#10145;&#65039;</a>`;
+            totalPlayersDiv.innerHTML = `${homeLink}<a href="/logout" class="logout-icon" title="Logout">Logout</a>`;
         } else {
             totalPlayersDiv.innerHTML = homeLink;
         }
@@ -93,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (players.length === 0) {
         playerListDiv.innerHTML = `
             <div class="empty-state">
-                <div class="empty-state-icon">👥</div>
+                <div class="empty-state-icon">&mdash;</div>
                 <div class="empty-state-text">${I18n.t('players.no_players')}</div>
             </div>
         `;
@@ -122,14 +122,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? `${I18n.t('players.in_room')}: <a href="room.html?id=${p.roomId}" class="room-go-btn">${p.roomName || p.roomId}</a>`
                 : `<span class="lobby-tag">${I18n.t('players.in_lobby')}</span>`;
             
-            let userIcon = '&#128100;'; // Regular Person
+            let prefixText = 'Player';
             let nameClass = 'player-name';
 
             if (p.isOwner) {
-                userIcon = '&#127775;'; // Glowing Star
+                prefixText = 'Owner';
                 nameClass += ' server-owner';
             } else if (p.isAdmin) {
-                userIcon = '&#128110;'; // Police Officer
+                prefixText = 'Admin';
                 nameClass += ' admin';
             } else {
                 nameClass += ' name-member';
@@ -145,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return `
             <li class="player-item">
                 <div class="player-info-left">
-                    <span class="player-icon">${userIcon}</span>
+                    <span class="player-prefix">${prefixText}</span>
                     <a class="${nameClass}" href="https://phira.moe/user/${p.id}" target="_blank">${p.name} (ID: ${p.id})</a>
                 </div>
                 <div class="player-info-right">

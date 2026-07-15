@@ -10,7 +10,7 @@
 </head>
 <body>
     <script>(function(){
-        const t=localStorage.getItem('theme');if(t==='dark')document.body.classList.add('dark-mode');
+        const t=localStorage.getItem('theme');if(t==='light')document.body.classList.add('light-mode');
         I18n.init();
     })()</script>
     <div class="login-card">
@@ -41,11 +41,11 @@
 
             <div class="footer-controls">
                 <button id="theme-toggle" class="theme-toggle-btn">
-                    <span id="theme-icon" class="theme-icon">🌙</span>
+                    <span id="theme-icon" class="theme-icon">Dark</span>
                     <span id="theme-text">Dark</span>
                 </button>
                 <button id="lang-toggle" class="lang-toggle-btn" onclick="I18n.toggleLanguage()">
-                    <span>🌐</span>
+                    <span>Lang</span>
                     <span id="lang-toggle-text">English</span>
                 </button>
             </div>
@@ -57,15 +57,15 @@
         const themeIcon = document.getElementById('theme-icon');
         const themeText = document.getElementById('theme-text');
         
-        function updateThemeUI(isDark) {
-            if (!I18n.isReady) return; // Wait for i18n
-            themeIcon.textContent = isDark ? '☀️' : '🌙';
-            themeText.textContent = isDark ? I18n.t('common.light_mode') : I18n.t('common.dark_mode');
+        function updateThemeUI(isLight) {
+            if (!I18n.isReady) return;
+            themeIcon.textContent = isLight ? 'Light' : 'Dark';
+            themeText.textContent = isLight ? I18n.t('common.dark_mode') : I18n.t('common.light_mode');
         }
 
         // Listen for i18n to be ready to set initial theme text
         document.addEventListener('i18nReady', () => {
-            updateThemeUI(document.body.classList.contains('dark-mode'));
+            updateThemeUI(document.body.classList.contains('light-mode'));
             if (window.SERVER_CONFIG) {
                 if (window.SERVER_CONFIG.displayIp) {
                     document.getElementById('server-ip').textContent = window.SERVER_CONFIG.displayIp;
@@ -77,9 +77,9 @@
         });
 
         themeToggle.addEventListener('click', () => {
-            const isDark = document.body.classList.toggle('dark-mode');
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
-            updateThemeUI(isDark);
+            const isLight = document.body.classList.toggle('light-mode');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+            updateThemeUI(isLight);
         });
 
         let geetestInstance = null;

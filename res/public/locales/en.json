@@ -117,7 +117,7 @@
     "invalid_size": "Invalid size",
     "action_failed": "Action failed",
     "confirm_bulk": "Confirm action for: {target}?",
-    "footer_version": "FunXLink Studio Phira Management Panel v1.0"
+    "footer_version": "FunXLink Studio Phira Management Panel v1.3"
   },
   "players": {
     "title": "Online Players",
@@ -146,5 +146,70 @@
     "duration_placeholder": "Duration (seconds, empty for permanent)",
     "reason_placeholder": "Enter ban reason",
     "confirm_unban": "Are you sure you want to unban {target}?"
+  },
+  "nav": {
+    "home": "Home",
+    "rooms": "Rooms",
+    "players": "Players",
+    "admin": "Admin",
+    "login": "Login"
+  },
+  "home": {
+    "welcome": "Welcome to Phira Server",
+    "description": "Explore the wonderful world of music games and enjoy the rhythm with players worldwide",
+    "online": "Online Players",
+    "rooms": "Rooms",
+    "version": "Version",
+    "server_info": "Server Info",
+    "server_name": "Server Name",
+    "server_ip": "Server IP",
+    "copy_ip": "Copy IP",
+    "quick_actions": "Quick Actions",
+    "browse_rooms": "Browse Rooms",
+    "view_players": "View Players",
+    "login_to": "Login to Manage"
+  },
+  "rooms": {
+    "title": "Room List",
+    "no_rooms": "No rooms available"
+  },
+  "players": {
+    "title": "Online Players",
+    "no_players": "No players online"
+  },
+  "admin": {
+    "title": "Admin Panel",
+    "login_required": "Please login to access admin panel",
+    "server_control": "Server Control",
+    "broadcast": "Server Broadcast",
+    "send": "Send",
+    "ban_management": "Ban Management",
+    "system_info": "System Info"
+  },
+  "auth": {
+    "login_tab": "Login",
+    "register_tab": "Register",
+    "login_title": "Welcome Back",
+    "register_title": "Create Account",
+    "email": "Email",
+    "password": "Password",
+    "confirm_password": "Confirm Password",
+    "login_btn": "Login",
+    "register_btn": "Register"
+  },
+  "profile": {
+    "title": "Profile",
+    "rooms": "Rooms",
+    "play_time": "Play Time",
+    "account_settings": "Account Settings",
+    "nickname": "Nickname",
+    "change_password": "Change Password",
+    "save_settings": "Save Settings",
+    "session_info": "Session Info",
+    "login_time": "Login Time",
+    "expire_time": "Expire Time",
+    "current_ip": "Current IP",
+    "recent_activity": "Recent Activity",
+    "no_activity": "No activity records"
   }
 }

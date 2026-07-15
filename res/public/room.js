@@ -207,7 +207,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!totalPlayersDiv) return;
         var content = '<strong>' + I18n.t('common.total_players') + ':</strong> ' + count;
         if (isAdmin) {
-            totalPlayersDiv.innerHTML = '<a href=\"/players.html\">' + content + '</a><a href=\"/logout\" class=\"logout-icon\" title=\"Logout\">&#10145;&#65039;</a>';
+            totalPlayersDiv.innerHTML = '<a href=\"/players.html\">' + content + '</a><a href=\"/logout\" class=\"logout-icon\" title=\"Logout\">Logout</a>';
         } else {
             totalPlayersDiv.innerHTML = content;
         }
@@ -304,7 +304,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             roomName.textContent = I18n.t('room.room_no') + '#' + (details.id || roomId);
-            var lockIcon = details.locked ? '&#128274;' : '&#128275;';
+            var lockIcon = details.locked ? 'L' : 'O';
             var lockStatusClass = details.locked ? 'locked-status' : 'unlocked-status';
             var roomMode = details.cycle ? I18n.t('room.mode_cycle') : I18n.t('room.mode_normal');
 
@@ -462,7 +462,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             var chatContentHtml = messagesHtml || [
                 '<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; color:var(--text-tertiary); opacity:0.6;">',
-                '<div style="font-size:2rem; margin-bottom:10px;">&#128172;</div>',
+                '<div style="font-size:1.6rem; margin-bottom:10px; font-weight:300;">&hellip;</div>',
                 '<div style="font-size:0.8rem;">' + I18n.t('room.no_messages') + '</div>',
                 '</div>'
             ].join('');
@@ -490,7 +490,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             var otherRoomsContent = (currentOtherRooms || []).length > 0
                 ? currentOtherRooms.slice(0, 5).map(function (r) {
-                    var serverBadge = r.isRemote ? '<span class="other-room-server-badge remote">&#127760; ' + (r.serverName || '') + '</span>' : '';
+                    var serverBadge = r.isRemote ? '<span class="other-room-server-badge remote">' + (r.serverName || 'Remote') + '</span>' : '';
                     return '<a href="room.html?id=' + r.id + (r.isRemote ? '&remote=1' : '') + '" class="other-room-item' + (r.isRemote ? ' other-room-remote' : '') + '"><span class="other-room-name">' + (r.name || 'Room') + serverBadge + '</span><span class="other-room-count">' + r.playerCount + '/' + r.maxPlayers + '</span></a>';
                 }).join('')
                 : '<div style="padding:20px; text-align:center; color:var(--text-tertiary); font-size:0.85rem; font-style:italic;">' + I18n.t('room.no_other_rooms') + '</div>';
@@ -510,7 +510,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 '<div class="detail-card" id="card-other-rooms">',
                 '<h3>' + I18n.t('room.other_rooms') + '</h3>',
                 '<div class="other-rooms-scroll">' + otherRoomsContent + '</div>',
-                (currentOtherRooms.length > 5 ? '<button class="refresh-rooms-btn" onclick="window.refreshOtherRooms()">&#128260; ' + I18n.t('room.refresh') + '</button>' : ''),
+                (currentOtherRooms.length > 5 ? '<button class="refresh-rooms-btn" onclick="window.refreshOtherRooms()">' + I18n.t('room.refresh') + '</button>' : ''),
                 '</div>',
                 '</div>',
                 '<div class="center-column">',

@@ -1,118 +1,236 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phira Server Rooms</title>
+    <title>Phira Server Dashboard</title>
     <link rel="icon" href="logo.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="i18n.js"></script>
 </head>
 <body>
     <script>(function(){
-        const t=localStorage.getItem('theme');if(t==='dark')document.body.classList.add('dark-mode');
+        var t=localStorage.getItem('theme');if(t==='light')document.body.classList.add('light-mode');
         I18n.init();
     })()</script>
-    <div class="container">
-        <header>
-            <h1 data-i18n="index.title">Phira Server Rooms</h1>
-            <div id="total-players"></div>
-            <div class="connection-status" id="connection-status" data-i18n="common.loading">Connecting...</div>
-        </header>
-        <div id="room-announcement" class="room-announcement" style="display: none;"></div>
-        <main id="room-list" class="room-list">
-            <!-- Rooms will be injected here by JavaScript -->
-        </main>
-        <footer>
-            <p data-i18n="common.server_ip">Game Server IP</p>
-            <div class="server-ip-container" id="copy-ip" data-i18n-title="common.click_to_copy">
-                <code id="server-ip">...</code>
-                <span class="copy-icon">📋</span>
+
+    <nav class="navbar" id="navbar">
+        <div class="navbar-container">
+            <div class="navbar-brand">
+                <a href="/" class="brand-link">
+                    <img class="brand-icon" src="https://phira.moe/favicon-96x96.png" alt="Phira" width="28" height="28">
+                    <span class="brand-name" id="brand-name">Phira Server</span>
+                </a>
             </div>
-            <script>
-                if (window.SERVER_CONFIG) {
-                    if (window.SERVER_CONFIG.displayIp) {
-                        document.getElementById('server-ip').textContent = window.SERVER_CONFIG.displayIp;
-                    }
-                    if (window.SERVER_CONFIG.serverName) {
-                        document.title = `${window.SERVER_CONFIG.serverName} - Room List`;
-                    }
-                }
-            </script>
-            <div class="footer-controls">
-                <button id="theme-toggle" class="theme-toggle-btn">
-                    <span id="theme-icon" class="theme-icon">🌙</span>
-                    <span id="theme-text" data-i18n="common.dark_mode">Dark Mode</span>
-                </button>
-                <button id="lang-toggle" class="lang-toggle-btn" onclick="I18n.toggleLanguage()">
-                    <span>🌐</span>
-                    <span id="lang-toggle-text">English</span>
-                </button>
+            <div class="navbar-nav">
+                <a href="#" class="nav-item active" data-page="home">
+                    <svg class="nav-icon" width="16" height="16" viewBox="0 0 16 16"><rect x="3" y="6" width="10" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M2 7 L8 2 L14 7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <span class="nav-text" data-i18n="nav.home">Home</span>
+                </a>
+                <a href="#" class="nav-item" data-page="rooms">
+                    <svg class="nav-icon" width="16" height="16" viewBox="0 0 16 16"><rect x="2" y="1" width="12" height="14" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="6" y1="1" x2="6" y2="15" stroke="currentColor" stroke-width="1.5"/><line x1="10" y1="1" x2="10" y2="15" stroke="currentColor" stroke-width="1.5"/></svg>
+                    <span class="nav-text" data-i18n="nav.rooms">Rooms</span>
+                </a>
+                <a href="#" class="nav-item" data-page="players">
+                    <svg class="nav-icon" width="16" height="16" viewBox="0 0 16 16"><circle cx="6" cy="5" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M2 14 Q2 10 6 10 Q10 10 10 14" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="11" cy="6" r="2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="1.5 1"/><path d="M9 13 Q9 11 11 11 Q13 11 13 13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="1.5 1"/></svg>
+                    <span class="nav-text" data-i18n="nav.players">Players</span>
+                </a>
+                <a href="#" class="nav-item" data-page="admin" id="nav-admin">
+                    <svg class="nav-icon" width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 1 L8 4 M8 12 L8 15 M1 8 L4 8 M12 8 L15 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="8" r="5" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="2 2"/></svg>
+                    <span class="nav-text" data-i18n="nav.admin">Admin</span>
+                </a>
             </div>
-        </footer>
+            <div class="navbar-right">
+                <div class="lang-switch" onclick="I18n.toggleLanguage()">
+                    <svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.2"/><ellipse cx="8" cy="8" rx="3" ry="6" fill="none" stroke="currentColor" stroke-width="1.2"/><line x1="2" y1="8" x2="14" y2="8" stroke="currentColor" stroke-width="1.2"/></svg>
+                </div>
+                <button id="theme-toggle" class="theme-btn">
+                    <svg width="16" height="16" viewBox="0 0 16 16" id="theme-icon-svg"><circle cx="8" cy="8" r="5" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M8 1 A7 7 0 0 0 8 15 A5 5 0 0 1 8 1" fill="currentColor" opacity="0.3"/></svg>
+                </button>
+                <div class="user-menu" id="user-menu">
+                    <button class="login-btn" id="login-trigger" data-i18n="nav.login">Login</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="auth-modal" id="auth-modal">
+        <div class="auth-overlay" onclick="closeAuthModal()"></div>
+        <div class="auth-content">
+            <button class="close-btn" onclick="closeAuthModal()">&times;</button>
+            <form id="login-form" class="auth-form">
+                <h2 data-i18n="auth.login_title">Welcome Back</h2>
+                <div class="form-group">
+                    <label data-i18n="auth.email">Email</label>
+                    <input type="email" id="email" name="email" placeholder="Phira account email" required>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="auth.password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="Password" required>
+                </div>
+                <button type="submit" class="submit-btn" id="auth-submit" data-i18n="auth.login_btn">Login</button>
+                <div class="error-msg" id="auth-error"></div>
+            </form>
+        </div>
     </div>
+
+    <div class="main-content" id="main-content">
+        <div id="page-home" class="page-content">
+            <div class="hero-section">
+                <div class="hero-pattern"></div>
+                <div class="hero-content">
+                    <p class="hero-eyebrow">Phira Multiplayer</p>
+                    <h1 id="hero-welcome">Welcome</h1>
+                    <p class="hero-desc" data-i18n="home.description">Explore the rhythm game world, enjoy the beat with players worldwide</p>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat-card">
+                        <div class="stat-card-inner">
+                            <span class="stat-value" id="online-count">0</span>
+                            <span class="stat-label">Online</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-inner">
+                            <span class="stat-value" id="room-count">0</span>
+                            <span class="stat-label">Active Rooms</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-inner">
+                            <span class="stat-value" id="server-version">--</span>
+                            <span class="stat-label">Version</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="info-card">
+                    <div class="info-card-header">
+                        <svg width="16" height="16" viewBox="0 0 16 16"><rect x="1" y="1" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="8" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+                        <span>Server</span>
+                    </div>
+                    <div class="info-rows">
+                        <div class="info-row"><span class="info-label">Name</span><span id="server-name-display" class="info-value">Phira Server</span></div>
+                        <div class="info-row"><span class="info-label">Address</span><code id="server-ip-display" class="info-value copyable" onclick="copyServerIp()">--</code></div>
+                    </div>
+                </div>
+
+                <div class="action-grid">
+                    <button class="action-card" onclick="navigateTo('rooms')">
+                        <svg class="action-icon" width="20" height="20" viewBox="0 0 20 20"><rect x="2" y="1" width="16" height="18" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="7" y1="1" x2="7" y2="19" stroke="currentColor" stroke-width="1.5"/><line x1="13" y1="1" x2="13" y2="19" stroke="currentColor" stroke-width="1.5"/></svg>
+                        <span>Rooms</span>
+                    </button>
+                    <button class="action-card" onclick="navigateTo('players')">
+                        <svg class="action-icon" width="20" height="20" viewBox="0 0 20 20"><circle cx="7" cy="6" r="3.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M1 20 Q1 14 7 14 Q13 14 13 20" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+                        <span>Players</span>
+                    </button>
+                    <button class="action-card" onclick="openAuthModal()">
+                        <svg class="action-icon" width="20" height="20" viewBox="0 0 20 20"><rect x="3" y="9" width="14" height="10" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M7 9 L7 5 C7 2 9 1 10 1 C11 1 13 2 13 5 L13 9" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="14" r="1.5" fill="currentColor"/></svg>
+                        <span>Admin</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-rooms" class="page-content" style="display: none;">
+            <div class="page-header">
+                <h1 data-i18n="rooms.title">Room List</h1>
+                <div class="connection-status" id="room-status">Connecting...</div>
+            </div>
+            <div id="room-announcement" class="room-announcement" style="display: none;"></div>
+            <main id="room-list" class="room-list"></main>
+            <div class="empty-state" id="empty-rooms" style="display: none;"><span class="empty-icon">&mdash;</span><span class="empty-text" data-i18n="rooms.no_rooms">No rooms</span></div>
+        </div>
+
+        <div id="page-players" class="page-content" style="display: none;">
+            <div class="page-header">
+                <h1 data-i18n="players.title">Online Players</h1>
+                <div class="connection-status" id="player-status">Connecting...</div>
+            </div>
+            <div id="player-list-container"></div>
+            <div class="empty-state" id="empty-players" style="display: none;"><span class="empty-icon">&mdash;</span><span class="empty-text" data-i18n="players.no_players">No players</span></div>
+        </div>
+
+        <div id="page-admin" class="page-content" style="display: none;">
+            <div class="page-header"><h1 data-i18n="admin.title">Admin Panel</h1></div>
+            <div class="admin-warning" id="admin-warning" style="display: block;"><span>!</span><span data-i18n="admin.login_required">Login required</span></div>
+            <div class="admin-panel-container" id="admin-panel" style="display: none;">
+                <section class="panel-card">
+                    <h2 data-i18n="admin.server_control">Server Control</h2>
+                    <div class="ban-add-section">
+                        <strong data-i18n="admin.broadcast">Broadcast</strong>
+                        <div class="action-group">
+                            <input type="text" id="broadcast-content" placeholder="Message">
+                            <button onclick="adminAction('broadcast')" class="admin-btn action-primary" data-i18n="admin.send">Send</button>
+                        </div>
+                    </div>
+                </section>
+                <section class="panel-card">
+                    <h2 data-i18n="admin.ban_management">Ban Management</h2>
+                    <div class="ban-table-container">
+                        <table class="ban-table"><thead><tr><th data-i18n="ban.type">Type</th><th data-i18n="ban.target">Target</th><th data-i18n="ban.reason">Reason</th><th data-i18n="ban.expires">Expires</th><th data-i18n="ban.action">Action</th></tr></thead><tbody id="ban-list-body"></tbody></table>
+                    </div>
+                    <div class="ban-add-section">
+                        <div class="action-group">
+                            <select id="ban-type"><option value="id">User ID</option><option value="ip">IP</option></select>
+                            <input type="text" id="ban-target" placeholder="Target">
+                            <input type="number" id="ban-duration" placeholder="Seconds">
+                            <input type="text" id="ban-reason" placeholder="Reason">
+                            <button onclick="executeBan()" class="admin-btn action-danger">Ban</button>
+                        </div>
+                    </div>
+                </section>
+                <section class="panel-card">
+                    <h2 data-i18n="admin.system_info">System Info</h2>
+                    <div class="system-info-grid" id="system-info"></div>
+                </section>
+            </div>
+        </div>
+
+        <div id="page-profile" class="page-content" style="display: none;">
+            <div class="page-header"><h1 data-i18n="profile.title">Profile</h1></div>
+            <div class="profile-container">
+                <div class="profile-sidebar">
+                    <div class="profile-avatar-wrapper">
+                        <img id="profile-avatar" src="" class="profile-avatar" alt="Avatar">
+                        <div class="profile-role-badge" id="profile-role">Player</div>
+                    </div>
+                    <div class="profile-info">
+                        <h2 id="profile-name" class="profile-name"></h2>
+                        <p id="profile-id" class="profile-id"></p>
+                        <p id="profile-email" class="profile-email"></p>
+                    </div>
+                    <div class="profile-stats">
+                        <div class="profile-stat-item"><span class="stat-num" id="profile-rks">--</span><span class="stat-label">RKS</span></div>
+                        <div class="profile-stat-item"><span class="stat-num" id="profile-room-count">0</span><span class="stat-label" data-i18n="profile.rooms">Rooms</span></div>
+                    </div>
+                </div>
+                <div class="profile-content">
+                    <div class="profile-section">
+                        <h3 data-i18n="profile.session_info">Session Info</h3>
+                        <div class="session-info-grid">
+                            <div class="info-item"><span class="info-label" data-i18n="profile.login_time">Login Time</span><span class="info-value" id="session-login-time">--</span></div>
+                            <div class="info-item"><span class="info-label" data-i18n="profile.expire_time">Expiration</span><span class="info-value" id="session-expire-time">--</span></div>
+                            <div class="info-item"><span class="info-label" data-i18n="profile.current_ip">Current IP</span><span class="info-value" id="session-ip">--</span></div>
+                        </div>
+                    </div>
+                    <div class="profile-section">
+                        <h3 data-i18n="profile.recent_activity">Activity</h3>
+                        <div class="activity-list" id="activity-list">
+                            <div class="empty-state"><span class="empty-icon">&mdash;</span><span class="empty-text" data-i18n="profile.no_activity">No activity</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer"><p data-i18n="common.copyright">Phira Server</p></footer>
     <script src="app.js"></script>
-    <script>
-        const themeToggle = document.getElementById('theme-toggle');
-        const themeIcon = document.getElementById('theme-icon');
-        const themeText = document.getElementById('theme-text');
-        const body = document.body;
-
-        function updateThemeUI(isDark) {
-            if (!I18n.isReady) return;
-            themeIcon.textContent = isDark ? '☀️' : '🌙';
-            themeText.textContent = isDark ? I18n.t('common.light_mode') : I18n.t('common.dark_mode');
-        }
-
-        document.addEventListener('i18nReady', () => {
-            updateThemeUI(body.classList.contains('dark-mode'));
-        });
-
-        themeToggle.addEventListener('click', () => {
-            const isDark = body.classList.toggle('dark-mode');
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
-            updateThemeUI(isDark);
-        });
-
-        document.getElementById('copy-ip').addEventListener('click', () => {
-            const ip = document.getElementById('server-ip').textContent;
-            navigator.clipboard.writeText(ip).then(() => {
-                alert(I18n.t('common.copy_success'));
-            }).catch(err => {
-                console.error('Copy failed: ', err);
-            });
-        });
-
-        // Easter Egg Logic
-        (function() {
-            let clickCount = 0;
-            let lastClickTime = 0;
-            const title = document.querySelector('header h1');
-            if (title) {
-                title.style.userSelect = 'none';
-                title.style.cursor = 'pointer';
-                title.addEventListener('click', async () => {
-                    const currentTime = Date.now();
-                    if (currentTime - lastClickTime < 500) {
-                        clickCount++;
-                    } else {
-                        clickCount = 1;
-                    }
-                    lastClickTime = currentTime;
-                    if (clickCount === 5) {
-                        clickCount = 0;
-                        alert(I18n.t('index.easter_egg_alert'));
-                        try {
-                            const res = await fetch('/check-auth');
-                            const auth = await res.json();
-                            if (auth.isAdmin) {
-                                window.location.href = '/panel';
-                            }
-                        } catch (e) {}
-                    }
-                });
-            }
-        })();
-    </script>
 </body>
 </html>
