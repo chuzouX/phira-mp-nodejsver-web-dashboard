@@ -130,8 +130,10 @@ document.addEventListener('DOMContentLoaded', function () {
         try {
             if (socket && socket.readyState === WebSocket.OPEN) {
                 socket.send(JSON.stringify({ type: 'getRoomDetails', payload: { roomId: roomId } }));
+                return;
             }
         } catch(e) {}
+        setTimeout(function() { location.reload(); }, 300);
     }
 
     async function checkAdminStatus() {
