@@ -126,7 +126,13 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     };
 
-    function rst() { socket.send(JSON.stringify({ type: 'getRoomDetails', payload: { roomId: roomId } })); }
+    function rst() {
+        try {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({ type: 'getRoomDetails', payload: { roomId: roomId } }));
+            }
+        } catch(e) {}
+    }
 
     async function checkAdminStatus() {
         try {
