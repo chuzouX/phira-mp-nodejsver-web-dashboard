@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function () {
             else if (action === 'force-start') { await fetch('/api/admin/force-start', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) }); }
             else if (action === 'toggle-lock') { await fetch('/api/admin/toggle-lock', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) }); }
             else if (action === 'toggle-mode') { await fetch('/api/admin/toggle-mode', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) }); }
-            else if (action === 'set-max') { body.maxPlayers = parseInt(value); await fetch('/api/admin/set-max-players', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) }); }
+            else if (action === 'set-max') { var n=parseInt(value); if(isNaN(n)||n<1){alert('Must be >= 1');return;} body.maxPlayers=n; await fetch('/api/admin/set-max-players', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) }); }
             else if (action === 'close') { if (!confirm('Close room?')) return; await fetch('/api/admin/close-room', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) }); window.location.href='/'; return; }
             else if (action === 'blacklist-set') {
                 var ids = value.split(',').map(function(v){return parseInt(v.trim());}).filter(function(v){return !isNaN(v);});

@@ -734,8 +734,10 @@ class WebDashboardPlugin {
 
     this.app.post('/api/admin/set-max-players', this.verifyUserRole('Admin').bind(this), (req, res) => {
       const { roomId, maxPlayers } = req.body;
-      if (!roomId || !maxPlayers) return res.status(400).json({ error: 'Missing roomId or maxPlayers' });
-      const ok = this.protocolHandler.setRoomMaxPlayers(roomId, Number(maxPlayers));
+      if (!roomId || maxPlayers == null) return res.status(400).json({ error: 'Missing roomId or maxPlayers' });
+      const n = Number(maxPlayers);
+      if (!Number.isFinite(n) || n < 1) return res.status(400).json({ error: 'maxPlayers must be >= 1' });
+      const ok = this.protocolHandler.setRoomMaxPlayers(roomId, n);
       return res.json({ success: ok });
     });
 
