@@ -117,7 +117,7 @@
     "invalid_size": "人数格式不正确",
     "action_failed": "操作失败",
     "confirm_bulk": "确定要对范围 “{target}” 执行此操作吗？",
-    "footer_version": "FunXLink Studio Phira 管理后台 v1.3"
+    "footer_version": "FunXLink Studio Phira 管理后台 v1.4"
   },
   "players": {
     "title": "在线玩家列表",

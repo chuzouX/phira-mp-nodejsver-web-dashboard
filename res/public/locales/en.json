@@ -117,7 +117,7 @@
     "invalid_size": "Invalid size",
     "action_failed": "Action failed",
     "confirm_bulk": "Confirm action for: {target}?",
-    "footer_version": "FunXLink Studio Phira Management Panel v1.3"
+    "footer_version": "FunXLink Studio Phira Management Panel v1.4"
   },
   "players": {
     "title": "Online Players",
