@@ -1335,10 +1335,32 @@ code.info-value:hover::after { opacity: 0.6; }
 /* Admin panel card in room */
 .admin-panel-card { border-color: rgba(255, 107, 139, 0.15); }
 
+.admin-panel-form { display: flex; flex-direction: column; gap: 12px; }
+
+.admin-row { display: flex; align-items: center; gap: 10px; }
+
+.admin-label {
+  font-size: 0.72rem; color: var(--text-secondary);
+  text-transform: uppercase; letter-spacing: 0.05em;
+  font-weight: 600; min-width: 80px; flex-shrink: 0;
+}
+
+.admin-input-row { display: flex; gap: 6px; align-items: center; flex: 1; }
+
+.admin-input-row input {
+  padding: 6px 10px; background: var(--bg);
+  border: 1px solid var(--border); color: var(--text);
+  font-size: 0.8rem; font-family: var(--font-sans);
+  outline: none;
+}
+
+.admin-input-row input:focus { border-color: var(--primary); }
+
 .admin-buttons-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
   gap: 6px;
+  padding-top: 4px;
 }
 
 /* Other rooms */

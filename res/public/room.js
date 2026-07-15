@@ -82,115 +82,51 @@ document.addEventListener('DOMContentLoaded', function () {
         if (lastDetails) renderRoomDetails(lastDetails);
     };
 
-    // Admin Actions
-    window.sendAdminServerMessage = async function () {
-        var content = prompt(I18n.currentLang === 'zh' ? '\u8bf7\u8f93\u5165\u53d1\u9001\u7684\u6d88\u606f\uff1a' : 'Enter message:');
-        if (!content || !content.trim()) return;
+    window.adminAction = async function(action, value) {
         try {
-            await fetch('/api/admin/server-message', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ roomId: roomId, content: content })
-            });
-        } catch (e) { alert('Failed'); }
+            var body = { roomId: roomId };
+            if (value !== undefined) body.value = value;
+            if (action === 'message') { body.content = value; await fetch('/api/admin/server-message', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) }); }
+            else if (action === 'kick') { body.userId = parseInt(value); await fetch('/api/admin/kick-player', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) }); }
+            else if (action === 'force-start') { await fetch('/api/admin/force-start', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) }); }
+            else if (action === 'toggle-lock') { await fetch('/api/admin/toggle-lock', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) }); }
+            else if (action === 'toggle-mode') { await fetch('/api/admin/toggle-mode', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) }); }
+            else if (action === 'set-max') { body.maxPlayers = parseInt(value); await fetch('/api/admin/set-max-players', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) }); }
+            else if (action === 'close') { if (!confirm('Close room?')) return; await fetch('/api/admin/close-room', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) }); window.location.href='/'; return; }
+            else if (action === 'blacklist-set') {
+                var ids = value.split(',').map(function(v){return parseInt(v.trim());}).filter(function(v){return !isNaN(v);});
+                await fetch('/api/admin/set-room-blacklist', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({roomId:roomId, userIds:ids}) });
+            }
+            else if (action === 'whitelist-set') {
+                var ids2 = value.split(',').map(function(v){return parseInt(v.trim());}).filter(function(v){return !isNaN(v);});
+                await fetch('/api/admin/set-room-whitelist', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({roomId:roomId, userIds:ids2}) });
+            }
+            rst();
+        } catch(e) { alert('Failed'); }
     };
 
-    window.kickPlayerByAdmin = async function () {
-        var id = prompt(I18n.currentLang === 'zh' ? '\u8bf7\u8f93\u5165\u73a9\u5bb6ID\uff1a' : 'Enter Player ID:');
-        if (!id) return;
-        try {
-            await fetch('/api/admin/kick-player', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: parseInt(id) })
-            });
-        } catch (e) { alert('Failed'); }
+    window.openAdminModal = function(title, bodyHtml, confirmAction) {
+        document.getElementById('admin-inline-title').textContent = title;
+        document.getElementById('admin-inline-body').innerHTML = bodyHtml;
+        var btn = document.getElementById('admin-inline-confirm');
+        btn.onclick = function() { confirmAction(); document.getElementById('admin-inline-modal').style.display = 'none'; };
+        document.getElementById('admin-inline-modal').style.display = 'flex';
     };
 
-    window.forceStartByAdmin = async function () {
-        if (!confirm(I18n.currentLang === 'zh' ? '\u786e\u5b9a\u8981\u5f3a\u5236\u5f00\u542f\u6e38\u620f\uff1f' : 'Force start game?')) return;
-        try {
-            await fetch('/api/admin/force-start', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ roomId: roomId })
-            });
-        } catch (e) { alert('Failed'); }
+    window.showBlacklistModal = async function(type) {
+        var res = await fetch('/api/admin/room-' + type + '?roomId=' + roomId);
+        var data = await res.json();
+        var list = data[type] || [];
+        var html = '<div style="margin-bottom:12px;"><span style="font-size:0.78rem;color:var(--text-secondary);">Current ' + type + ':</span><div style="color:var(--text);font-size:0.85rem;margin-top:4px;">' + (list.length ? list.join(', ') : '<em>Empty</em>') + '</div></div>';
+        html += '<label style="font-size:0.78rem;color:var(--text-secondary);display:block;margin-bottom:4px;">Set ' + type + ' (comma-separated IDs):</label>';
+        html += '<input type="text" id="admin-input-value" style="width:100%;padding:8px 10px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:0.85rem;font-family:var(--font-sans);" value="' + list.join(',') + '">';
+        window.openAdminModal(type.charAt(0).toUpperCase() + type.slice(1), html, function() {
+            var input = document.getElementById('admin-input-value');
+            if (input) window.adminAction(type + '-set', input.value);
+        });
     };
 
-    window.toggleRoomLockByAdmin = async function () {
-        try {
-            await fetch('/api/admin/toggle-lock', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ roomId: roomId })
-            });
-        } catch (e) { alert('Failed'); }
-    };
-
-    window.setMaxPlayersByAdmin = async function () {
-        var count = prompt(I18n.currentLang === 'zh' ? '\u8bf7\u8f93\u5165\u6700\u5927\u4eba\u6570\uff1a' : 'Enter max players:');
-        if (!count) return;
-        try {
-            await fetch('/api/admin/set-max-players', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ roomId: roomId, maxPlayers: parseInt(count) })
-            });
-        } catch (e) { alert('Failed'); }
-    };
-
-    window.closeRoomByAdmin = async function () {
-        if (!confirm(I18n.currentLang === 'zh' ? '\u786e\u5b9a\u5173\u95ed\u623f\u95f4\uff1f' : 'Close room?')) return;
-        try {
-            await fetch('/api/admin/close-room', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ roomId: roomId })
-            });
-            window.location.href = '/';
-        } catch (e) { alert('Failed'); }
-    };
-
-    window.toggleRoomModeByAdmin = async function () {
-        try {
-            await fetch('/api/admin/toggle-mode', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ roomId: roomId })
-            });
-        } catch (e) { alert('Failed'); }
-    };
-
-    window.manageBlacklistByAdmin = async function () {
-        try {
-            var res = await fetch('/api/admin/room-blacklist?roomId=' + roomId);
-            var data = await res.json();
-            var input = prompt('Blacklist (ID,ID):', (data.blacklist || []).join(','));
-            if (input === null) return;
-            var userIds = input.split(',').map(function (id) { return parseInt(id.trim()); }).filter(function (id) { return !isNaN(id); });
-            await fetch('/api/admin/set-room-blacklist', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ roomId: roomId, userIds: userIds })
-            });
-        } catch (e) { alert('Failed'); }
-    };
-
-    window.manageWhitelistByAdmin = async function () {
-        try {
-            var res = await fetch('/api/admin/room-whitelist?roomId=' + roomId);
-            var data = await res.json();
-            var input = prompt('Whitelist (ID,ID):', (data.whitelist || []).join(','));
-            if (input === null) return;
-            var userIds = input.split(',').map(function (id) { return parseInt(id.trim()); }).filter(function (id) { return !isNaN(id); });
-            await fetch('/api/admin/set-room-whitelist', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ roomId: roomId, userIds: userIds })
-            });
-        } catch (e) { alert('Failed'); }
-    };
+    function rst() { socket.send(JSON.stringify({ type: 'getRoomDetails', payload: { roomId: roomId } })); }
 
     async function checkAdminStatus() {
         try {
@@ -473,16 +409,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 adminHtml = [
                     '<div class="detail-card admin-panel-card" id="card-admin-panel">',
                     '<h3>' + I18n.t('room.admin_panel') + '</h3>',
-                    '<div class="admin-category"><div class="admin-buttons-grid">',
-                    '<button class="admin-btn action-primary" onclick="window.sendAdminServerMessage()">' + I18n.t('room.admin.message') + '</button>',
-                    '<button class="admin-btn action-primary" onclick="window.forceStartByAdmin()">' + I18n.t('room.admin.start') + '</button>',
-                    '<button class="admin-btn action-danger" onclick="window.closeRoomByAdmin()">' + I18n.t('room.admin.close') + '</button>',
-                    '<button class="admin-btn" onclick="window.setMaxPlayersByAdmin()">' + I18n.t('room.admin.size') + '</button>',
-                    '<button class="admin-btn" onclick="window.toggleRoomModeByAdmin()">' + I18n.t('room.admin.mode') + '</button>',
-                    '<button class="admin-btn" onclick="window.toggleRoomLockByAdmin()">' + I18n.t('room.admin.lock') + '</button>',
-                    '<button class="admin-btn action-warning" onclick="window.kickPlayerByAdmin()">' + I18n.t('room.admin.kick') + '</button>',
-                    '<button class="admin-btn" onclick="window.manageBlacklistByAdmin()">' + I18n.t('room.admin.blacklist') + '</button>',
-                    '<button class="admin-btn" onclick="window.manageWhitelistByAdmin()">' + I18n.t('room.admin.whitelist') + '</button>',
+                    '<div class="admin-panel-form">',
+                    '<div class="admin-row"><span class="admin-label">Message</span><div class="admin-input-row"><input type="text" id="admin-msg-input" placeholder="Server message..." style="flex:1;"><button class="admin-btn action-primary" onclick="var v=document.getElementById(\'admin-msg-input\').value;if(v)window.adminAction(\'message\',v)">Send</button></div></div>',
+                    '<div class="admin-row"><span class="admin-label">Kick</span><div class="admin-input-row"><input type="number" id="admin-kick-input" placeholder="Player ID" style="flex:1;"><button class="admin-btn action-warning" onclick="var v=document.getElementById(\'admin-kick-input\').value;if(v)window.adminAction(\'kick\',v)">Kick</button></div></div>',
+                    '<div class="admin-row"><span class="admin-label">Max Players</span><div class="admin-input-row"><input type="number" id="admin-size-input" placeholder="Max" style="width:80px;"><button class="admin-btn" onclick="var v=document.getElementById(\'admin-size-input\').value;if(v)window.adminAction(\'set-max\',v)">Set</button></div></div>',
+                    '<div class="admin-buttons-grid">',
+                    '<button class="admin-btn action-primary" onclick="window.adminAction(\'force-start\')">' + I18n.t('room.admin.start') + '</button>',
+                    '<button class="admin-btn" onclick="window.adminAction(\'toggle-lock\')">' + I18n.t('room.admin.lock') + '</button>',
+                    '<button class="admin-btn" onclick="window.adminAction(\'toggle-mode\')">' + I18n.t('room.admin.mode') + '</button>',
+                    '<button class="admin-btn action-danger" onclick="window.adminAction(\'close\')">' + I18n.t('room.admin.close') + '</button>',
+                    '<button class="admin-btn" onclick="window.showBlacklistModal(\'blacklist\')">' + I18n.t('room.admin.blacklist') + '</button>',
+                    '<button class="admin-btn" onclick="window.showBlacklistModal(\'whitelist\')">' + I18n.t('room.admin.whitelist') + '</button>',
                     '</div></div>',
                     '</div>'
                 ].join('');
