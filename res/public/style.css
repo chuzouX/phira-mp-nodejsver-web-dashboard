@@ -1430,11 +1430,12 @@ code.info-value:hover::after { opacity: 0.6; }
 
 .back-link {
   display: inline-flex; align-items: center; gap: 5px;
-  color: var(--primary); text-decoration: none; font-weight: 500;
+  color: var(--text-secondary); text-decoration: none; font-weight: 500;
   font-size: 0.82rem; transition: var(--transition);
+  padding: 6px 12px; border: 1px solid var(--border); background: var(--surface);
 }
 
-.back-link:hover { color: var(--primary-hover); }
+.back-link:hover { color: var(--primary); border-color: var(--primary); background: var(--primary-light); }
 
 .logout-icon {
   color: var(--text-secondary);
