@@ -1145,6 +1145,8 @@ code.info-value:hover::after { opacity: 0.6; }
   margin-bottom: 18px;
   flex-wrap: wrap;
   gap: 10px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
 }
 
 .container header h1 {
