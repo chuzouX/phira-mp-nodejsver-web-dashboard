@@ -3,6 +3,7 @@ let isAdmin = false;
 let isOwner = false;
 let currentPage = 'home';
 var userProfile = null;
+var routeMap = { '/': 'home', '/room': 'rooms', '/players': 'players', '/admin': 'admin', '/profile': 'profile' };
 
 document.addEventListener('DOMContentLoaded', function() {
     setupNavigation();
@@ -11,6 +12,13 @@ document.addEventListener('DOMContentLoaded', function() {
     loadServerConfig();
     checkSession();
     startStatusPolling();
+    var initialPage = routeMap[window.location.pathname] || 'home';
+    navigateTo(initialPage, true);
+});
+
+window.addEventListener('popstate', function() {
+    var page = routeMap[window.location.pathname] || 'home';
+    navigateTo(page, true);
 });
 
 function setupNavigation() {
@@ -30,7 +38,7 @@ function setupNavigation() {
     });
 }
 
-function navigateTo(page) {
+function navigateTo(page, silent) {
     currentPage = page;
     document.querySelectorAll('.nav-item').forEach(function(item) {
         item.classList.toggle('active', item.dataset.page === page);
@@ -38,6 +46,10 @@ function navigateTo(page) {
     document.querySelectorAll('.page-content').forEach(function(c) { c.style.display = 'none'; });
     var target = document.getElementById('page-' + page);
     if (target) target.style.display = 'block';
+    if (!silent) {
+        var path = Object.keys(routeMap).find(function(k) { return routeMap[k] === page; }) || '/';
+        if (window.location.pathname !== path) history.pushState(null, '', path);
+    }
     if (page === 'home') loadHomeData();
     else if (page === 'rooms') loadRooms();
     else if (page === 'players') loadPlayers();
