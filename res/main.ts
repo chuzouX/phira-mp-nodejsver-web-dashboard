@@ -717,6 +717,78 @@ class WebDashboardPlugin {
       return res.json({ success });
     });
 
+    // Room-level admin actions
+    this.app.post('/api/admin/force-start', this.verifyUserRole('Admin').bind(this), (req, res) => {
+      const { roomId } = req.body;
+      if (!roomId) return res.status(400).json({ error: 'Missing roomId' });
+      const ok = this.protocolHandler.forceStartGame(roomId);
+      return res.json({ success: ok });
+    });
+
+    this.app.post('/api/admin/toggle-lock', this.verifyUserRole('Admin').bind(this), (req, res) => {
+      const { roomId } = req.body;
+      if (!roomId) return res.status(400).json({ error: 'Missing roomId' });
+      const ok = this.protocolHandler.toggleRoomLock(roomId);
+      return res.json({ success: ok });
+    });
+
+    this.app.post('/api/admin/set-max-players', this.verifyUserRole('Admin').bind(this), (req, res) => {
+      const { roomId, maxPlayers } = req.body;
+      if (!roomId || !maxPlayers) return res.status(400).json({ error: 'Missing roomId or maxPlayers' });
+      const ok = this.protocolHandler.setRoomMaxPlayers(roomId, Number(maxPlayers));
+      return res.json({ success: ok });
+    });
+
+    this.app.post('/api/admin/close-room', this.verifyUserRole('Admin').bind(this), (req, res) => {
+      const { roomId } = req.body;
+      if (!roomId) return res.status(400).json({ error: 'Missing roomId' });
+      const ok = this.protocolHandler.closeRoomByAdmin(roomId);
+      return res.json({ success: ok });
+    });
+
+    this.app.post('/api/admin/toggle-mode', this.verifyUserRole('Admin').bind(this), (req, res) => {
+      const { roomId } = req.body;
+      if (!roomId) return res.status(400).json({ error: 'Missing roomId' });
+      const room = this.roomManager.getRoom(roomId);
+      if (!room) return res.status(404).json({ error: 'Room not found' });
+      room.cycle = !room.cycle;
+      return res.json({ success: true });
+    });
+
+    this.app.get('/api/admin/room-blacklist', this.verifyUserRole('Admin').bind(this), (req, res) => {
+      const roomId = req.query.roomId as string;
+      if (!roomId) return res.status(400).json({ error: 'Missing roomId' });
+      const room = this.roomManager.getRoom(roomId);
+      if (!room) return res.status(404).json({ error: 'Room not found' });
+      return res.json({ blacklist: room.blacklist || [] });
+    });
+
+    this.app.post('/api/admin/set-room-blacklist', this.verifyUserRole('Admin').bind(this), (req, res) => {
+      const { roomId, userIds } = req.body;
+      if (!roomId) return res.status(400).json({ error: 'Missing roomId' });
+      const room = this.roomManager.getRoom(roomId);
+      if (!room) return res.status(404).json({ error: 'Room not found' });
+      room.blacklist = Array.isArray(userIds) ? userIds : [];
+      return res.json({ success: true });
+    });
+
+    this.app.get('/api/admin/room-whitelist', this.verifyUserRole('Admin').bind(this), (req, res) => {
+      const roomId = req.query.roomId as string;
+      if (!roomId) return res.status(400).json({ error: 'Missing roomId' });
+      const room = this.roomManager.getRoom(roomId);
+      if (!room) return res.status(404).json({ error: 'Room not found' });
+      return res.json({ whitelist: room.whitelist || [] });
+    });
+
+    this.app.post('/api/admin/set-room-whitelist', this.verifyUserRole('Admin').bind(this), (req, res) => {
+      const { roomId, userIds } = req.body;
+      if (!roomId) return res.status(400).json({ error: 'Missing roomId' });
+      const room = this.roomManager.getRoom(roomId);
+      if (!room) return res.status(404).json({ error: 'Room not found' });
+      room.whitelist = Array.isArray(userIds) ? userIds : [];
+      return res.json({ success: true });
+    });
+
     // Ban Management APIs
     this.app.get('/api/admin/bans', this.verifyUserRole('Admin').bind(this), (_req, res) => {
       return res.json(this.banManager.getAllBans());
