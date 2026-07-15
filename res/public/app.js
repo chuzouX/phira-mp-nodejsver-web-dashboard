@@ -398,7 +398,7 @@ async function loadProfile() {
         if (sData.valid) {
             var lt = document.getElementById('session-login-time'); if (lt) lt.textContent = new Date(sData.expiresAt - 30*86400000).toLocaleString();
             var et = document.getElementById('session-expire-time'); if (et) et.textContent = new Date(sData.expiresAt).toLocaleString();
-            var ip = document.getElementById('session-ip'); if (ip) ip.textContent = '--';
+            var ip = document.getElementById('session-ip'); if (ip) ip.textContent = sData.ip || '--';
         }
     } catch (e) { console.error(e); }
 

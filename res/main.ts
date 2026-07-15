@@ -527,6 +527,7 @@ class WebDashboardPlugin {
         isAdmin: session.isAdmin,
         isOwner: session.isOwner,
         expiresAt: session.expiresAt,
+        ip: this.getRealIp(req),
       });
     });
 
