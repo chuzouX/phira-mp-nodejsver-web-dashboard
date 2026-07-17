@@ -13,7 +13,8 @@ document.addEventListener('DOMContentLoaded', function() {
     loadServerConfig();
     checkSession();
     startStatusPolling();
-    var initialPage = routeMap[window.location.pathname] || 'home';
+    var qp = new URLSearchParams(window.location.search).get('page');
+    var initialPage = qp || routeMap[window.location.pathname] || 'home';
     navigateTo(initialPage, true);
 });
 

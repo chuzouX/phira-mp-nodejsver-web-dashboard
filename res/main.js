@@ -331,32 +331,10 @@ class WebDashboardPlugin {
             this.serveHtmlWithConfig(res, path_1.default.join(publicPath, 'index.html'));
         });
         this.app.get(['/room', '/room.html'], (_req, res) => {
-            this.serveHtmlWithConfig(res, path_1.default.join(publicPath, 'room.html'));
+            return res.redirect('/?page=rooms');
         });
-        this.app.get(['/players', '/players.html'], (req, res) => {
-            // 检查用户是否有管理员权限
-            let token = undefined;
-            if (req.cookies && req.cookies['access_token']) {
-                token = req.cookies['access_token'];
-            }
-            if (!token) {
-                const authHeader = req.headers['authorization'];
-                if (authHeader && authHeader.startsWith('Bearer ')) {
-                    token = authHeader.substring(7);
-                }
-            }
-            if (!token) {
-                return res.redirect('/');
-            }
-            const session = this.userSessions.get(token);
-            if (!session || Date.now() > session.expiresAt) {
-                return res.redirect('/');
-            }
-            if (!session.isAdmin && !session.isOwner) {
-                return res.redirect('/');
-            }
-            // 管理员可以访问 players 页面
-            this.serveHtmlWithConfig(res, path_1.default.join(publicPath, 'players.html'));
+        this.app.get(['/players', '/players.html'], (_req, res) => {
+            return res.redirect('/?page=players');
         });
         this.app.get(['/panel', '/panel.html'], (req, res) => {
             let token = undefined;
