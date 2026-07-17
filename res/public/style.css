@@ -1944,7 +1944,6 @@ code.info-value:hover::after { opacity: 0.6; }
   .details-grid { grid-template-columns: 1fr; }
   .hero-pattern { background-size: 18px 18px; }
   .ban-table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .ban-table { min-width: 550px; }
   .system-info-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
@@ -1996,7 +1995,7 @@ code.info-value:hover::after { opacity: 0.6; }
   .admin-buttons-grid { grid-template-columns: repeat(2, 1fr); }
   .detail-card { padding: 14px; }
   .details-grid { gap: 12px; }
-  .results-table { min-width: 0; }
+  .left-sidebar, .center-column, .right-sidebar { min-width: 0; }
   .results-table td, .results-table th { padding: 6px 8px; font-size: 0.7rem; }
   .navbar-right { gap: 4px; }
   .navbar-right svg { width: 14px; height: 14px; }
@@ -2011,9 +2010,9 @@ code.info-value:hover::after { opacity: 0.6; }
   .player-name { font-size: 0.78rem; }
   .connection-status { font-size: 0.62rem; padding: 4px 10px; }
   .ban-table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .ban-table { min-width: 520px; font-size: 0.72rem; }
+  .ban-table { font-size: 0.72rem; }
   .results-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .results-table { min-width: 500px; font-size: 0.7rem; }
+  .results-table { font-size: 0.7rem; }
 }
 
 @media (max-width: 400px) {
