@@ -199,6 +199,9 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!details) {
                 roomName.textContent = I18n.t('common.error') + ': Room "' + roomId + '" not found';
                 roomDetails.innerHTML = '';
+                if (socket) { socket.close(); socket = null; }
+                if (connectionStatus) connectionStatus.textContent = '';
+                setTimeout(function() { window.location.href = '/room'; }, 1500);
                 return;
             }
 
