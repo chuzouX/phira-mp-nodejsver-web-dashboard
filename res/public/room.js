@@ -20,6 +20,23 @@ document.addEventListener('DOMContentLoaded', function () {
     var currentOtherRooms = [];
     var lastMessageCount = -1;
     var announcementTimeout = null;
+
+    function updateQuickInfo(room) {
+        try {
+            var chartNameEl = document.getElementById('chart-name');
+            if (chartNameEl && room.state && room.state.chartName) {
+                chartNameEl.textContent = room.state.chartName;
+            }
+            var modeEl = document.querySelector('.room-mode-tag');
+            if (modeEl) {
+                modeEl.textContent = room.cycle ? I18n.t('room.mode_cycle') : I18n.t('room.mode_normal');
+            }
+            var countEl = document.getElementById('total-players');
+            if (countEl && room.playerCount !== undefined) {
+                countEl.innerHTML = '<strong>' + I18n.t('common.total_players') + ':</strong> ' + room.playerCount;
+            }
+        } catch(e) {}
+    }
     var defaultAvatar = (window.SERVER_CONFIG && window.SERVER_CONFIG.defaultAvatar) || 'https://phira.5wyxi.com/files/6ad662de-b505-4725-a7ef-72d65f32b404';
 
     function showAnnouncement(m) {
@@ -176,7 +193,16 @@ document.addEventListener('DOMContentLoaded', function () {
                     var message = JSON.parse(event.data);
                     if (message.type === 'roomDetails') renderRoomDetails(message.payload);
                     else if (message.type === 'serverStats') updateTotalPlayers(message.payload.totalPlayers);
-                    else if (message.type === 'roomList') socket.send(JSON.stringify({ type: 'getRoomDetails', payload: { roomId: roomId } }));
+                    else if (message.type === 'roomList') {
+                        socket.send(JSON.stringify({ type: 'getRoomDetails', payload: { roomId: roomId } }));
+                        var rooms = message.payload || [];
+                        for (var ri = 0; ri < rooms.length; ri++) {
+                            if (String(rooms[ri].id) === String(roomId)) {
+                                updateQuickInfo(rooms[ri]);
+                                break;
+                            }
+                        }
+                    }
                 } catch (error) { console.error('WS Message Error:', error); }
             };
 
