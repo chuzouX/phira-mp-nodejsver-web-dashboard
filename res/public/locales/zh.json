@@ -12,7 +12,8 @@
     "back_home": "返回首页",
     "loading": "正在加载...",
     "error": "错误",
-    "unknown": "未知"
+    "unknown": "未知",
+    "copyright": "Phira Server"
   },
   "index": {
     "title": "Phira 房间列表",
@@ -130,6 +131,8 @@
   },
   "ban": {
     "manage_title": "封禁列表管理",
+    "type": "类型",
+    "action": "操作",
     "user_id_bans": "游戏内用户 ID 封禁",
     "ip_bans": "游戏内 IP 封禁",
     "target": "目标",

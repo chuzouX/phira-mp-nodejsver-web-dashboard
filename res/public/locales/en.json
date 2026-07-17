@@ -12,7 +12,8 @@
     "back_home": "Back to Home",
     "loading": "Loading...",
     "error": "Error",
-    "unknown": "Unknown"
+    "unknown": "Unknown",
+    "copyright": "Phira Server"
   },
   "index": {
     "title": "Phira Server Rooms",
@@ -130,6 +131,8 @@
   },
   "ban": {
     "manage_title": "Ban List Management",
+    "type": "Type",
+    "action": "Action",
     "user_id_bans": "In-game User ID Bans",
     "ip_bans": "In-game IP Bans",
     "target": "Target",

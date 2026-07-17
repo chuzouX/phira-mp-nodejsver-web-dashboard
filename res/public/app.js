@@ -327,7 +327,8 @@ async function loadBans() {
         if (!all.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No bans</td></tr>'; return; }
         all.forEach(function(ban) {
             var row = document.createElement('tr');
-            row.innerHTML = '<td>' + ban.type + '</td><td>' + ban.target + '</td><td title="' + ban.reason + '">' + (ban.reason || '') + '</td><td>' + (ban.expiresAt ? new Date(ban.expiresAt).toLocaleString() : 'Permanent') + '</td><td><button class="admin-btn action-success" onclick="unban(\'' + ban.type.toLowerCase() + '\',\'' + ban.target + '\')">Unban</button></td>';
+            var typeKey = ban.type === 'ID' ? 'ban.type_user_id' : 'ban.type_game_ip';
+            row.innerHTML = '<td>' + I18n.t(typeKey) + '</td><td>' + ban.target + '</td><td title="' + ban.reason + '">' + (ban.reason || '') + '</td><td>' + (ban.expiresAt ? new Date(ban.expiresAt).toLocaleString() : I18n.t('ban.permanent')) + '</td><td><button class="admin-btn action-success" onclick="unban(\'' + ban.type.toLowerCase() + '\',\'' + ban.target + '\')">' + I18n.t('players.unban') + '</button></td>';
             tbody.appendChild(row);
         });
     } catch (e) { console.error(e); }
