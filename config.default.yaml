@@ -16,11 +16,6 @@ captchaProvider: none
 # geetestId: "your-geetest-id"
 # geetestKey: "your-geetest-key"
 
-# 允许的跨域来源 (多个用数组格式)
-allowedOrigins:
-  - http://localhost:5173
-  - http://localhost:3000
-
 # 公开房间过滤（是否只显示带特定前缀的房间）
 enablePubWeb: false
 pubPrefix: "pub"

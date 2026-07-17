@@ -990,7 +990,6 @@ const pluginModule = {
             captchaProvider: pluginConfig.captchaProvider ?? config.captchaProvider,
             geetestId: pluginConfig.geetestId ?? config.geetestId,
             geetestKey: pluginConfig.geetestKey ?? config.geetestKey,
-            allowedOrigins: pluginConfig.allowedOrigins ?? config.allowedOrigins,
             enablePubWeb: pluginConfig.enablePubWeb ?? config.enablePubWeb,
             pubPrefix: pluginConfig.pubPrefix ?? config.pubPrefix,
             enablePriWeb: pluginConfig.enablePriWeb ?? config.enablePriWeb,
