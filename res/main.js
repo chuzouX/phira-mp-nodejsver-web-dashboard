@@ -329,22 +329,43 @@ class WebDashboardPlugin {
         this.app.get(['/', '/index.html'], (_req, res) => {
             this.serveHtmlWithConfig(res, path_1.default.join(publicPath, 'index.html'));
         });
-        this.app.get(['/room', '/room.html'], (req, res) => {
-            if (req.query.id) {
-                return this.serveHtmlWithConfig(res, path_1.default.join(publicPath, 'room.html'));
+        this.app.get(['/room', '/room.html'], (_req, res) => {
+            this.serveHtmlWithConfig(res, path_1.default.join(publicPath, 'room.html'));
+        });
+        this.app.get(['/players', '/players.html'], (req, res) => {
+            // 检查用户是否有管理员权限
+            let token = undefined;
+            if (req.cookies && req.cookies['access_token']) {
+                token = req.cookies['access_token'];
             }
-            return res.redirect('/?page=rooms');
-        });
-        this.app.get(['/players', '/players.html'], (_req, res) => {
-            return res.redirect('/?page=players');
-        });
-        this.app.get(['/panel', '/panel.html'], this.verifyUserRole('Admin').bind(this), (req, res) => {
-            if (req.query.embed === '1') {
-                return this.serveHtmlWithConfig(res, path_1.default.join(publicPath, 'panel.html'));
+            if (!token) {
+                const authHeader = req.headers['authorization'];
+                if (authHeader && authHeader.startsWith('Bearer ')) {
+                    token = authHeader.substring(7);
+                }
             }
-            return res.redirect('/?page=admin');
+            if (!token) {
+                return res.redirect('/');
+            }
+            const session = this.userSessions.get(token);
+            if (!session || Date.now() > session.expiresAt) {
+                return res.redirect('/');
+            }
+            if (!session.isAdmin && !session.isOwner) {
+                return res.redirect('/');
+            }
+            // 管理员可以访问 players 页面
+            this.serveHtmlWithConfig(res, path_1.default.join(publicPath, 'players.html'));
         });
-
+        this.app.get(['/manage', '/manage.html'], (_req, res) => {
+            this.serveHtmlWithConfig(res, path_1.default.join(publicPath, 'manage.html'));
+        });
+        this.app.get(['/login', '/login.html'], (_req, res) => {
+            this.serveHtmlWithConfig(res, path_1.default.join(publicPath, 'login.html'));
+        });
+        this.app.get(['/info', '/info.html'], (_req, res) => {
+            this.serveHtmlWithConfig(res, path_1.default.join(publicPath, 'info.html'));
+        });
         this.app.get('/icon.png', (_req, res) => {
             if (fs_1.default.existsSync(this.runtimeIconFile)) {
                 return res.sendFile(this.runtimeIconFile);
