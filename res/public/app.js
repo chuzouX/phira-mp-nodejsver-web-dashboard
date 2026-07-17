@@ -3,7 +3,7 @@ let isAdmin = false;
 let isOwner = false;
 let currentPage = 'home';
 var userProfile = null;
-var routeMap = { '/': 'home', '/room': 'rooms', '/players': 'players', '/profile': 'profile' };
+var routeMap = { '/': 'home', '/room': 'rooms', '/players': 'players', '/panel': 'admin', '/profile': 'profile' };
 
 document.addEventListener('DOMContentLoaded', function() {
     setupNavigation();
@@ -58,6 +58,7 @@ function navigateTo(page, silent) {
     else if (page === 'rooms') loadRooms();
     else if (page === 'players') loadPlayers();
     else if (page === 'profile') loadProfile();
+    else if (page === 'admin') loadAdminPanel();
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -66,8 +67,10 @@ function setupMobileMenu() {
     var drawer = document.getElementById('mobile-nav-drawer');
     var backdrop = document.getElementById('mobile-menu-backdrop');
     var closeBtn = document.getElementById('mobile-nav-close');
-    if (!btn || !drawer || !backdrop) return;
-    btn.addEventListener('click', toggleMobileMenu);
+    if (!drawer || !backdrop) return;
+    if (btn) btn.addEventListener('click', toggleMobileMenu);
+    var brand = document.querySelector('.brand-link');
+    if (brand) brand.addEventListener('click', function(e) { if (window.innerWidth <= 900) { e.preventDefault(); toggleMobileMenu(); } });
     if (closeBtn) closeBtn.addEventListener('click', closeMobileMenu);
     backdrop.addEventListener('click', closeMobileMenu);
 }
@@ -165,8 +168,14 @@ function updateUserMenu() {
             (isAdmin || isOwner ? '<a href="/panel"><svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.5" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8 1 L8 4 M8 12 L8 15 M1 8 L4 8 M12 8 L15 8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg><span>Admin</span></a>' : '') +
             '<button onclick="logout()"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M6 2 L6 5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><rect x="2" y="5" width="7" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M10 8 L13 8 M11.5 6.5 L14 8 L11.5 9.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Logout</span></button>' +
             '</div>';
+        document.querySelectorAll('.nav-item[data-page="admin"]').forEach(function(el) {
+            el.style.display = (isAdmin || isOwner) ? 'flex' : 'none';
+        });
     } else {
         menu.innerHTML = '<button class="login-btn" id="login-trigger" onclick="openAuthModal()">Login</button>';
+        document.querySelectorAll('.nav-item[data-page="admin"]').forEach(function(el) {
+            el.style.display = 'none';
+        });
     }
 }
 
@@ -310,6 +319,11 @@ async function kickPlayer(userId) {
 function copyServerIp() {
     var ip = document.getElementById('server-ip-display').textContent;
     navigator.clipboard.writeText(ip).then(function() { notify('IP copied'); }).catch(function() { notify('Failed'); });
+}
+
+function loadAdminPanel() {
+    var frame = document.getElementById('admin-frame');
+    if (frame && !frame.src) frame.src = '/panel?embed=1';
 }
 
 function startStatusPolling() {

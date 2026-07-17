@@ -15,16 +15,6 @@
     })()</script>
 
     <div class="container">
-        <header>
-            <h1 data-i18n="admin.panel_title">Admin Management Panel</h1>
-            <div class="footer-controls" style="margin: 0;">
-                <a href="/" class="back-link" style="margin: 0;" data-i18n="common.back_home">Back to Home</a>
-                <button id="theme-toggle" class="theme-toggle-btn">
-                    <span id="theme-icon" class="theme-icon">Dark</span>
-                </button>
-            </div>
-        </header>
-
         <div class="admin-panel-container">
             <!-- Server Control -->
             <section class="panel-card">
@@ -93,11 +83,11 @@
                 <div class="ban-add-section">
                     <strong data-i18n="ban.ban_user">Ban User/IP</strong>
                     <div class="action-group">
-                        <select id="ban-type-select" onchange="updateBanTargetUI()"><option value="id" data-i18n="ban.type_user_id">User ID</option><option value="ip" data-i18n="ban.type_game_ip">Game IP</option></select>
-                        <input type="text" id="ban-target-input" list="ban-target-list" data-i18n-placeholder="ban.target_placeholder" placeholder="Target" style="flex:1">
-                        <datalist id="ban-target-list"></datalist>
-                        <input type="number" id="ban-duration-input" data-i18n-placeholder="ban.duration_placeholder" placeholder="Seconds" style="width:100px">
-                        <input type="text" id="ban-reason-input" data-i18n-placeholder="ban.reason_placeholder" placeholder="Reason" style="flex:1">
+                        <select id="ban-type-select" onchange="updateBanTargetSelect()"><option value="id">User ID</option><option value="ip">Game IP</option></select>
+                        <select id="ban-target-select" style="flex:2"><option value="">-- Select player or type below --</option></select>
+                        <input type="text" id="ban-target-input" placeholder="Or enter ID / IP manually" style="flex:1">
+                        <input type="number" id="ban-duration-input" placeholder="Duration (s)" style="width:100px">
+                        <input type="text" id="ban-reason-input" placeholder="Reason" style="flex:1">
                         <button onclick="executeBan()" class="admin-btn action-danger" data-i18n="admin.ban">Ban</button>
                     </div>
                 </div>
@@ -152,8 +142,15 @@
             try {
                 const res = await fetch('/check-auth');
                 const auth = await res.json();
-                if (!auth.isAdmin) { window.location.href = '/admin'; }
-            } catch (e) { window.location.href = '/admin'; }
+                if (!auth.isAdmin) {
+                    alert(I18n.t('admin.access_denied'));
+                    if (window.parent && window.parent !== window) window.parent.location.href = '/';
+                    else window.location.href = '/';
+                }
+            } catch (e) {
+                if (window.parent && window.parent !== window) window.parent.location.href = '/';
+                else window.location.href = '/';
+            }
         }
 
         let activeRooms = [];
@@ -167,38 +164,30 @@
             } catch (e) { console.error('Failed to fetch rooms', e); }
         }
 
-        let onlinePlayers = [];
         async function fetchOnlinePlayers() {
             try {
                 const res = await fetch('/api/all-players');
-                onlinePlayers = await res.json();
-                updateBanDatalist();
+                const players = await res.json();
+                populateBanTargetSelect(players);
             } catch (e) { console.error('Failed to fetch players', e); }
         }
 
-        function updateBanDatalist() {
+        function populateBanTargetSelect(players) {
             const type = document.getElementById('ban-type-select').value;
-            const dl = document.getElementById('ban-target-list');
-            if (!dl) return;
-            dl.innerHTML = '';
-            onlinePlayers.forEach(p => {
+            const sel = document.getElementById('ban-target-select');
+            if (!sel) return;
+            sel.innerHTML = '<option value="">-- Select player --</option>';
+            players.forEach(p => {
                 if (p.id === -1) return;
-                const option = document.createElement('option');
-                if (type === 'id') {
-                    option.value = p.id;
-                    option.textContent = `${p.name} (ID: ${p.id})`;
-                } else {
-                    option.value = p.ip;
-                    option.textContent = `${p.ip} (${p.name})`;
-                }
-                dl.appendChild(option);
+                const opt = document.createElement('option');
+                if (type === 'id') { opt.value = p.id; opt.textContent = p.name + ' (ID: ' + p.id + ')'; }
+                else { opt.value = p.ip; opt.textContent = p.ip + ' (' + p.name + ')'; }
+                sel.appendChild(opt);
             });
         }
 
-        function updateBanTargetUI() {
-            const input = document.getElementById('ban-target-input');
-            if (input) input.value = '';
-            updateBanDatalist();
+        function updateBanTargetSelect() {
+            fetchOnlinePlayers();
         }
 
         function renderRoomChips(prefix) {
@@ -343,13 +332,15 @@
 
         async function executeBan() {
             const type = document.getElementById('ban-type-select').value;
-            const target = document.getElementById('ban-target-input').value.trim();
+            const selVal = document.getElementById('ban-target-select').value;
+            const inputVal = document.getElementById('ban-target-input').value.trim();
+            const target = selVal || inputVal;
             const duration = document.getElementById('ban-duration-input').value.trim();
             const reason = document.getElementById('ban-reason-input').value.trim();
             if (!target) return alert(I18n.t('admin.target_required'));
             try {
                 const res = await fetch('/api/admin/ban', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type, target, duration: duration || null, reason: reason || null }) });
-                if ((await res.json()).success) { alert(I18n.t('room.admin.success')); document.getElementById('ban-target-input').value = ''; await fetchBans(); if (type === 'id') await fetchOnlinePlayers(); }
+                if ((await res.json()).success) { alert(I18n.t('room.admin.success')); document.getElementById('ban-target-select').value = ''; document.getElementById('ban-target-input').value = ''; await fetchBans(); }
             } catch (e) { alert(I18n.t('admin.action_failed')); }
         }
 
@@ -361,11 +352,11 @@
             } catch (e) { alert(I18n.t('admin.action_failed')); }
         }
 
-        // Theme
-        document.getElementById('theme-toggle').addEventListener('click', () => {
-            const isLight = document.body.classList.toggle('light-mode');
-            localStorage.setItem('theme', isLight ? 'light' : 'dark');
-            document.getElementById('theme-icon').textContent = isLight ? 'Light' : 'Dark';
+        // Theme toggle (if standalone)
+        var tt = document.getElementById('theme-toggle');
+        if (tt) tt.addEventListener('click', () => {
+            document.body.classList.toggle('light-mode');
+            localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
         });
 
         document.addEventListener('i18nReady', () => {
@@ -376,10 +367,8 @@
             fetchOnlinePlayers();
             loadSystemInfo();
             setInterval(fetchActiveRooms, 5000);
-            setInterval(fetchOnlinePlayers, 5000);
+            setInterval(fetchOnlinePlayers, 30000);
             setInterval(fetchLoginBlacklist, 10000);
-            const isLight = document.body.classList.contains('light-mode');
-            document.getElementById('theme-icon').textContent = isLight ? 'Light' : 'Dark';
             if (window.SERVER_CONFIG && window.SERVER_CONFIG.displayIp) {
                 document.getElementById('server-ip').textContent = window.SERVER_CONFIG.displayIp;
             }

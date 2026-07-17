@@ -38,7 +38,7 @@
                     <svg class="nav-icon" width="16" height="16" viewBox="0 0 16 16"><circle cx="6" cy="5" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M2 14 Q2 10 6 10 Q10 10 10 14" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="11" cy="6" r="2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="1.5 1"/><path d="M9 13 Q9 11 11 11 Q13 11 13 13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="1.5 1"/></svg>
                     <span class="nav-text" data-i18n="nav.players">Players</span>
                 </a>
-                <a href="/panel" class="nav-item" id="nav-admin">
+                <a href="/panel" class="nav-item" data-page="admin" id="nav-admin">
                     <svg class="nav-icon" width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 1 L8 4 M8 12 L8 15 M1 8 L4 8 M12 8 L15 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="8" r="5" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="2 2"/></svg>
                     <span class="nav-text" data-i18n="nav.admin">Admin</span>
                 </a>
@@ -81,7 +81,7 @@
                 <svg class="nav-icon" width="16" height="16" viewBox="0 0 16 16"><circle cx="6" cy="5" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M2 14 Q2 10 6 10 Q10 10 10 14" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="11" cy="6" r="2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="1.5 1"/><path d="M9 13 Q9 11 11 11 Q13 11 13 13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="1.5 1"/></svg>
                 <span class="nav-text" data-i18n="nav.players">Players</span>
             </a>
-            <a href="/panel" class="nav-item" id="mobile-nav-admin">
+            <a href="/panel" class="nav-item" data-page="admin" id="mobile-nav-admin">
                 <svg class="nav-icon" width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 1 L8 4 M8 12 L8 15 M1 8 L4 8 M12 8 L15 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="8" r="5" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="2 2"/></svg>
                 <span class="nav-text" data-i18n="nav.admin">Admin</span>
             </a>
@@ -185,6 +185,10 @@
             </div>
             <div id="player-list-container"></div>
             <div class="empty-state" id="empty-players" style="display: none;"><span class="empty-icon">&mdash;</span><span class="empty-text" data-i18n="players.no_players">No players</span></div>
+        </div>
+
+        <div id="page-admin" class="page-content" style="display: none;">
+            <iframe id="admin-frame" style="width:100%;height:100vh;border:none;display:block;"></iframe>
         </div>
 
         <div id="page-profile" class="page-content" style="display: none;">
