@@ -357,15 +357,7 @@ class WebDashboardPlugin {
             // 管理员可以访问 players 页面
             this.serveHtmlWithConfig(res, path_1.default.join(publicPath, 'players.html'));
         });
-        this.app.get(['/manage', '/manage.html'], (_req, res) => {
-            this.serveHtmlWithConfig(res, path_1.default.join(publicPath, 'manage.html'));
-        });
-        this.app.get(['/login', '/login.html'], (_req, res) => {
-            this.serveHtmlWithConfig(res, path_1.default.join(publicPath, 'login.html'));
-        });
-        this.app.get(['/info', '/info.html'], (_req, res) => {
-            this.serveHtmlWithConfig(res, path_1.default.join(publicPath, 'info.html'));
-        });
+
         this.app.get('/icon.png', (_req, res) => {
             if (fs_1.default.existsSync(this.runtimeIconFile)) {
                 return res.sendFile(this.runtimeIconFile);

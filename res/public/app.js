@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setupNavigation();
     setupAuth();
     setupThemeToggle();
+    setupMobileMenu();
     loadServerConfig();
     checkSession();
     startStatusPolling();
@@ -39,6 +40,7 @@ function setupNavigation() {
 }
 
 function navigateTo(page, silent) {
+    closeMobileMenu();
     currentPage = page;
     document.querySelectorAll('.nav-item').forEach(function(item) {
         item.classList.toggle('active', item.dataset.page === page);
@@ -56,6 +58,41 @@ function navigateTo(page, silent) {
     else if (page === 'admin') loadAdminPanel();
     else if (page === 'profile') loadProfile();
     window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function setupMobileMenu() {
+    var btn = document.getElementById('mobile-menu-btn');
+    var drawer = document.getElementById('mobile-nav-drawer');
+    var backdrop = document.getElementById('mobile-menu-backdrop');
+    var closeBtn = document.getElementById('mobile-nav-close');
+    if (!btn || !drawer || !backdrop) return;
+    btn.addEventListener('click', toggleMobileMenu);
+    if (closeBtn) closeBtn.addEventListener('click', closeMobileMenu);
+    backdrop.addEventListener('click', closeMobileMenu);
+}
+
+function toggleMobileMenu() {
+    var drawer = document.getElementById('mobile-nav-drawer');
+    var backdrop = document.getElementById('mobile-menu-backdrop');
+    var btn = document.getElementById('mobile-menu-btn');
+    if (!drawer) return;
+    if (drawer.classList.contains('show')) { closeMobileMenu(); }
+    else {
+        drawer.classList.add('show');
+        backdrop.classList.add('show');
+        btn.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeMobileMenu() {
+    var drawer = document.getElementById('mobile-nav-drawer');
+    var backdrop = document.getElementById('mobile-menu-backdrop');
+    var btn = document.getElementById('mobile-menu-btn');
+    if (drawer) drawer.classList.remove('show');
+    if (backdrop) backdrop.classList.remove('show');
+    if (btn) btn.classList.remove('open');
+    document.body.style.overflow = '';
 }
 
 function setupAuth() {
@@ -117,7 +154,6 @@ function fetchUserProfile(callback) {
 
 function updateUserMenu() {
     var menu = document.getElementById('user-menu');
-    var navAdmin = document.getElementById('nav-admin');
     if (currentUser) {
         var avUrl = (userProfile && userProfile.avatar) ? userProfile.avatar : '';
         var placeholder = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><rect width="40" height="40" rx="8" fill="#2d2d3a"/><text x="20" y="27" text-anchor="middle" fill="#666" font-size="18" font-family="sans-serif">' + (currentUser.name ? currentUser.name.charAt(0).toUpperCase() : '?') + '</text></svg>');
@@ -128,10 +164,14 @@ function updateUserMenu() {
             (isAdmin || isOwner ? '<a href="#" onclick="navigateTo(\'admin\');closeDropdown()"><svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.5" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8 1 L8 4 M8 12 L8 15 M1 8 L4 8 M12 8 L15 8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg><span>Admin</span></a>' : '') +
             '<button onclick="logout()"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M6 2 L6 5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><rect x="2" y="5" width="7" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M10 8 L13 8 M11.5 6.5 L14 8 L11.5 9.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Logout</span></button>' +
             '</div>';
-        if (navAdmin) navAdmin.style.display = (isAdmin || isOwner) ? 'flex' : 'none';
+        document.querySelectorAll('.nav-item[data-page="admin"]').forEach(function(el) {
+            el.style.display = (isAdmin || isOwner) ? 'flex' : 'none';
+        });
     } else {
         menu.innerHTML = '<button class="login-btn" id="login-trigger" onclick="openAuthModal()">Login</button>';
-        if (navAdmin) navAdmin.style.display = 'none';
+        document.querySelectorAll('.nav-item[data-page="admin"]').forEach(function(el) {
+            el.style.display = 'none';
+        });
     }
 }
 
