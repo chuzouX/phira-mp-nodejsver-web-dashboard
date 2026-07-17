@@ -1066,11 +1066,12 @@ code.info-value:hover::after { opacity: 0.6; }
   border: 1px solid var(--border);
   border-left: 3px solid var(--primary);
   overflow: hidden;
+  padding: 0 20px 20px 20px;
 }
 
 .panel-card-header {
   display: flex; align-items: center; gap: 8px;
-  padding: 16px 20px 0 20px;
+  padding: 16px 0 0 0;
 }
 
 .panel-card-header h2 {
@@ -1085,12 +1086,12 @@ code.info-value:hover::after { opacity: 0.6; }
 }
 
 .panel-card h2 {
-  margin: 0 20px 14px 20px; padding-top: 16px; color: var(--text);
+  margin: 0 0 14px 0; padding-top: 16px; color: var(--text);
   font-size: 0.95rem; font-family: var(--font-display);
   font-weight: 600;
 }
 
-.panel-card-body { padding: 0 20px 20px 20px; }
+.panel-card-body { padding: 0; }
 
 .ban-add-section {
   background: var(--bg-secondary); padding: 14px 16px;
@@ -1982,8 +1983,8 @@ code.info-value:hover::after { opacity: 0.6; }
   .system-info-grid { grid-template-columns: repeat(2, 1fr); }
   .session-info-grid { grid-template-columns: 1fr; }
   .admin-panel-container { gap: 14px; }
-  .panel-card { padding: 14px; }
-  .panel-card h2 { margin: 0 14px 10px 14px; padding-top: 12px; font-size: 0.85rem; }
+  .panel-card { padding: 0 14px 14px 14px; }
+  .panel-card h2 { margin: 0 0 10px 0; padding-top: 12px; font-size: 0.85rem; }
   .ban-add-section { padding: 10px 12px; }
   .admin-buttons-grid { grid-template-columns: repeat(2, 1fr); }
   .auth-content { padding: 20px; width: 95%; }
