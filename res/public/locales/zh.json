@@ -131,6 +131,10 @@
     "ip_required": "请输入 IP 地址",
     "confirm_remove_blacklist": "确认从黑名单移除 {ip}？",
     "owner_required": "需要 Owner 权限",
+    "title": "管理面板",
+    "login_required": "请先登录以访问管理面板",
+    "ban_management": "封禁管理",
+    "system_info": "系统信息",
     "footer_version": "FunXLink Studio Phira 管理后台 v1.4"
   },
   "players": {
@@ -192,15 +196,6 @@
   "players": {
     "title": "在线玩家",
     "no_players": "暂无在线玩家"
-  },
-  "admin": {
-    "title": "管理面板",
-    "login_required": "请先登录以访问管理面板",
-    "server_control": "服务器控制",
-    "broadcast": "全服广播",
-    "send": "发送",
-    "ban_management": "封禁管理",
-    "system_info": "系统信息"
   },
   "auth": {
     "login_tab": "登录",

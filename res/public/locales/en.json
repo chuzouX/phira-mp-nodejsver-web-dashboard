@@ -131,6 +131,10 @@
     "ip_required": "Please enter an IP address",
     "confirm_remove_blacklist": "Confirm remove {ip} from blacklist?",
     "owner_required": "Owner access required",
+    "title": "Admin Panel",
+    "login_required": "Please login to access admin panel",
+    "ban_management": "Ban Management",
+    "system_info": "System Info",
     "footer_version": "FunXLink Studio Phira Management Panel v1.4"
   },
   "players": {
@@ -192,15 +196,6 @@
   "players": {
     "title": "Online Players",
     "no_players": "No players online"
-  },
-  "admin": {
-    "title": "Admin Panel",
-    "login_required": "Please login to access admin panel",
-    "server_control": "Server Control",
-    "broadcast": "Server Broadcast",
-    "send": "Send",
-    "ban_management": "Ban Management",
-    "system_info": "System Info"
   },
   "auth": {
     "login_tab": "Login",
