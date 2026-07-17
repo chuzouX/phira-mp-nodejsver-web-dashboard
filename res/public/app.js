@@ -3,7 +3,7 @@ let isAdmin = false;
 let isOwner = false;
 let currentPage = 'home';
 var userProfile = null;
-var routeMap = { '/': 'home', '/room': 'rooms', '/players': 'players', '/admin': 'admin', '/profile': 'profile' };
+var routeMap = { '/': 'home', '/room': 'rooms', '/players': 'players', '/profile': 'profile' };
 
 document.addEventListener('DOMContentLoaded', function() {
     setupNavigation();
@@ -25,6 +25,7 @@ window.addEventListener('popstate', function() {
 function setupNavigation() {
     document.querySelectorAll('.nav-item').forEach(function(item) {
         item.addEventListener('click', function(e) {
+            if (!item.dataset.page) return;
             e.preventDefault();
             navigateTo(item.dataset.page);
         });
@@ -55,7 +56,6 @@ function navigateTo(page, silent) {
     if (page === 'home') loadHomeData();
     else if (page === 'rooms') loadRooms();
     else if (page === 'players') loadPlayers();
-    else if (page === 'admin') loadAdminPanel();
     else if (page === 'profile') loadProfile();
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -161,17 +161,11 @@ function updateUserMenu() {
             '<img src="' + (avUrl || placeholder) + '" class="user-avatar" onclick="toggleUserDropdown()" onerror="this.onerror=null;this.src=\'' + placeholder + '\'">' +
             '<div class="user-dropdown" id="user-dropdown">' +
             '<a href="#" onclick="navigateTo(\'profile\');closeDropdown()"><svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="5" r="3" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M2 15 Q2 10 8 10 Q14 10 14 15" fill="none" stroke="currentColor" stroke-width="1.3"/></svg><span>Profile</span></a>' +
-            (isAdmin || isOwner ? '<a href="#" onclick="navigateTo(\'admin\');closeDropdown()"><svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.5" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8 1 L8 4 M8 12 L8 15 M1 8 L4 8 M12 8 L15 8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg><span>Admin</span></a>' : '') +
+            (isAdmin || isOwner ? '<a href="/panel"><svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.5" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8 1 L8 4 M8 12 L8 15 M1 8 L4 8 M12 8 L15 8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg><span>Admin</span></a>' : '') +
             '<button onclick="logout()"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M6 2 L6 5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><rect x="2" y="5" width="7" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M10 8 L13 8 M11.5 6.5 L14 8 L11.5 9.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Logout</span></button>' +
             '</div>';
-        document.querySelectorAll('.nav-item[data-page="admin"]').forEach(function(el) {
-            el.style.display = (isAdmin || isOwner) ? 'flex' : 'none';
-        });
     } else {
         menu.innerHTML = '<button class="login-btn" id="login-trigger" onclick="openAuthModal()">Login</button>';
-        document.querySelectorAll('.nav-item[data-page="admin"]').forEach(function(el) {
-            el.style.display = 'none';
-        });
     }
 }
 
@@ -310,79 +304,6 @@ async function kickPlayer(userId) {
         var data = await res.json();
         if (data.success) { notify('Player kicked'); loadPlayers(); } else notify('Failed');
     } catch (e) { console.error(e); }
-}
-
-async function loadAdminPanel() {
-    var warning = document.getElementById('admin-warning');
-    var panel = document.getElementById('admin-panel');
-    if (isAdmin || isOwner) { warning.style.display = 'none'; panel.style.display = 'grid'; loadBans(); loadSystemInfo(); }
-    else { warning.style.display = 'flex'; panel.style.display = 'none'; }
-}
-
-async function loadBans() {
-    try {
-        var res = await fetch('/api/admin/bans'); var data = await res.json();
-        var tbody = document.getElementById('ban-list-body'); tbody.innerHTML = '';
-        var all = [].concat((data.idBans || []).map(function(b) { b.type = 'ID'; return b; }), (data.ipBans || []).map(function(b) { b.type = 'IP'; return b; }));
-        if (!all.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No bans</td></tr>'; return; }
-        all.forEach(function(ban) {
-            var row = document.createElement('tr');
-            var typeKey = ban.type === 'ID' ? 'ban.type_user_id' : 'ban.type_game_ip';
-            row.innerHTML = '<td>' + I18n.t(typeKey) + '</td><td>' + ban.target + '</td><td title="' + ban.reason + '">' + (ban.reason || '') + '</td><td>' + (ban.expiresAt ? new Date(ban.expiresAt).toLocaleString() : I18n.t('ban.permanent')) + '</td><td><button class="admin-btn action-success" onclick="unban(\'' + ban.type.toLowerCase() + '\',\'' + ban.target + '\')">' + I18n.t('players.unban') + '</button></td>';
-            tbody.appendChild(row);
-        });
-    } catch (e) { console.error(e); }
-}
-
-async function executeBan() {
-    var type = document.getElementById('ban-type').value;
-    var target = document.getElementById('ban-target').value.trim();
-    var duration = document.getElementById('ban-duration').value.trim();
-    var reason = document.getElementById('ban-reason').value.trim();
-    if (!target) { notify('Enter target'); return; }
-    try {
-        var res = await fetch('/api/admin/ban', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: type, target: target, duration: duration || null, reason: reason || null }) });
-        var data = await res.json();
-        if (data.success) { notify('Banned'); document.getElementById('ban-target').value = ''; document.getElementById('ban-duration').value = ''; document.getElementById('ban-reason').value = ''; loadBans(); }
-        else notify('Failed');
-    } catch (e) { console.error(e); }
-}
-
-async function unban(type, target) {
-    if (!confirm('Unban ' + target + '?')) return;
-    try {
-        var res = await fetch('/api/admin/unban', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: type, target: target }) });
-        var data = await res.json();
-        if (data.success) { notify('Unbanned'); loadBans(); }
-    } catch (e) { console.error(e); }
-}
-
-async function loadSystemInfo() {
-    try {
-        var res = await fetch('/api/owner/system-info'); var data = await res.json();
-        document.getElementById('system-info').innerHTML =
-            '<div class="system-info-item"><span class="label">Uptime</span><span class="value">' + formatUptime(data.uptime) + '</span></div>' +
-            '<div class="system-info-item"><span class="label">RSS</span><span class="value">' + ((data.memory && data.memory.rss) || 0) + ' MB</span></div>' +
-            '<div class="system-info-item"><span class="label">Heap</span><span class="value">' + ((data.memory && data.memory.heapUsed) || 0) + ' MB</span></div>' +
-            '<div class="system-info-item"><span class="label">Node</span><span class="value">' + (data.nodeVersion || '-') + '</span></div>';
-    } catch (e) { console.log('System info not available'); }
-}
-
-function formatUptime(s) {
-    var d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60);
-    if (d > 0) return d + 'd ' + h + 'h'; if (h > 0) return h + 'h ' + m + 'm'; return m + 'm';
-}
-
-async function adminAction(action) {
-    if (action === 'broadcast') {
-        var content = document.getElementById('broadcast-content').value.trim();
-        if (!content) { notify('Enter message'); return; }
-        try {
-            var res = await fetch('/api/admin/broadcast', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content: content }) });
-            var data = await res.json();
-            if (data.success) { notify('Sent to ' + data.roomCount + ' rooms'); document.getElementById('broadcast-content').value = ''; }
-        } catch (e) { console.error(e); }
-    }
 }
 
 function copyServerIp() {

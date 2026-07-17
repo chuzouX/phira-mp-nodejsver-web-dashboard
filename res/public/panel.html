@@ -129,6 +129,14 @@
                     * IPs are automatically added here after too many failed login attempts to the admin panel.
                 </div>
             </section>
+
+            <!-- System Info (Owner only) -->
+            <section class="panel-card">
+                <h2 data-i18n="admin.system_info">System Info</h2>
+                <div class="system-info-grid" id="system-info">
+                    <div style="color:var(--text-tertiary);text-align:center;padding:20px;">Loading...</div>
+                </div>
+            </section>
         </div>
 
         <footer style="margin-top: 40px; padding: 20px 0; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border);">
@@ -367,6 +375,23 @@
             } catch (e) { alert(I18n.t('admin.action_failed')); }
         }
 
+        async function loadSystemInfo() {
+            try {
+                const res = await fetch('/api/owner/system-info');
+                const data = await res.json();
+                document.getElementById('system-info').innerHTML =
+                    '<div class="system-info-item"><span class="label">Uptime</span><span class="value">' + formatUptime(data.uptime) + '</span></div>' +
+                    '<div class="system-info-item"><span class="label">RSS</span><span class="value">' + ((data.memory && data.memory.rss) || 0) + ' MB</span></div>' +
+                    '<div class="system-info-item"><span class="label">Heap</span><span class="value">' + ((data.memory && data.memory.heapUsed) || 0) + ' MB</span></div>' +
+                    '<div class="system-info-item"><span class="label">Node</span><span class="value">' + (data.nodeVersion || '-') + '</span></div>';
+            } catch (e) { document.getElementById('system-info').innerHTML = '<div style="color:var(--text-tertiary);text-align:center;padding:20px;">Owner access required</div>'; }
+        }
+
+        function formatUptime(s) {
+            const d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60);
+            if (d > 0) return d + 'd ' + h + 'h'; if (h > 0) return h + 'h ' + m + 'm'; return m + 'm';
+        }
+
         function renderBanList(type, bans) {
             const body = document.getElementById(`${type}-ban-list-body`);
             if (!body) return;
@@ -443,6 +468,7 @@
             fetchLoginBlacklist();
             fetchActiveRooms();
             fetchOnlinePlayers();
+            loadSystemInfo();
             
             // Periodically refresh lists
             setInterval(fetchActiveRooms, 5000);
