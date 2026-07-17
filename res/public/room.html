@@ -15,6 +15,22 @@
         I18n.init();
     })()</script>
 
+    <nav class="navbar" id="navbar">
+        <div class="navbar-container">
+            <div class="navbar-brand"><a href="/" class="brand-link"><img class="brand-icon" src="https://phira.moe/favicon-96x96.png" alt="Phira" width="28" height="28"><span class="brand-name" id="brand-name">Phira Server</span></a></div>
+            <div class="navbar-nav">
+                <a href="/" class="nav-item" data-page="home"><svg class="nav-icon" width="16" height="16" viewBox="0 0 16 16"><rect x="3" y="6" width="10" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M2 7 L8 2 L14 7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="nav-text" data-i18n="nav.home">Home</span></a>
+                <a href="/room" class="nav-item active" data-page="rooms"><svg class="nav-icon" width="16" height="16" viewBox="0 0 16 16"><rect x="2" y="1" width="12" height="14" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="6" y1="1" x2="6" y2="15" stroke="currentColor" stroke-width="1.5"/><line x1="10" y1="1" x2="10" y2="15" stroke="currentColor" stroke-width="1.5"/></svg><span class="nav-text" data-i18n="nav.rooms">Rooms</span></a>
+                <a href="/players" class="nav-item" data-page="players"><svg class="nav-icon" width="16" height="16" viewBox="0 0 16 16"><circle cx="6" cy="5" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M2 14 Q2 10 6 10 Q10 10 10 14" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="11" cy="6" r="2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="1.5 1"/><path d="M9 13 Q9 11 11 11 Q13 11 13 13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="1.5 1"/></svg><span class="nav-text" data-i18n="nav.players">Players</span></a>
+                <a href="/panel" class="nav-item" id="nav-admin"><svg class="nav-icon" width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 1 L8 4 M8 12 L8 15 M1 8 L4 8 M12 8 L15 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="8" r="5" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="2 2"/></svg><span class="nav-text" data-i18n="nav.admin">Admin</span></a>
+            </div>
+            <div class="navbar-right">
+                <div class="lang-switch" onclick="I18n.toggleLanguage()"><svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.2"/><ellipse cx="8" cy="8" rx="3" ry="6" fill="none" stroke="currentColor" stroke-width="1.2"/><line x1="2" y1="8" x2="14" y2="8" stroke="currentColor" stroke-width="1.2"/></svg></div>
+                <button id="theme-toggle" class="theme-btn"><svg width="16" height="16" viewBox="0 0 16 16" id="theme-icon-svg"><circle cx="8" cy="8" r="5" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M8 1 A7 7 0 0 0 8 15 A5 5 0 0 1 8 1" fill="currentColor" opacity="0.3"/></svg></button>
+            </div>
+        </div>
+    </nav>
+
     <div id="announcement-popup"></div>
 
     <!-- Inline Action Modal -->
@@ -103,26 +119,9 @@
     <script src="room.js"></script>
 
     <script>
-        // Theme Toggle Logic
-        var themeToggle = document.getElementById('theme-toggle');
-        var themeIcon = document.getElementById('theme-icon');
-        var themeText = document.getElementById('theme-text');
-        var body = document.body;
-
-        function updateThemeUI(isLight) {
-            if (!I18n.isReady) return;
-            themeIcon.textContent = isLight ? 'Light' : 'Dark';
-            themeText.textContent = isLight ? I18n.t('common.dark_mode') : I18n.t('common.light_mode');
-        }
-
-        document.addEventListener('i18nReady', function () {
-            updateThemeUI(body.classList.contains('light-mode'));
-        });
-
-        themeToggle.addEventListener('click', function () {
-            var isLight = body.classList.toggle('light-mode');
-            localStorage.setItem('theme', isLight ? 'light' : 'dark');
-            updateThemeUI(isLight);
+        document.getElementById('theme-toggle').addEventListener('click', function () {
+            document.body.classList.toggle('light-mode');
+            localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
         });
 
         document.getElementById('copy-ip').addEventListener('click', function () {
