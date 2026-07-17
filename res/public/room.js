@@ -169,12 +169,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
                 checkAdminStatus();
                 socket.send(JSON.stringify({ type: 'getRoomDetails', payload: { roomId: roomId } }));
-                clearInterval(window._roomPoll);
-                window._roomPoll = setInterval(function() {
-                    if (socket && socket.readyState === WebSocket.OPEN) {
-                        socket.send(JSON.stringify({ type: 'getRoomDetails', payload: { roomId: roomId } }));
-                    }
-                }, 1000);
             };
 
             socket.onmessage = function (event) {
