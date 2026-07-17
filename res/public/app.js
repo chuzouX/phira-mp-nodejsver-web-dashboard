@@ -4,6 +4,7 @@ let isOwner = false;
 let currentPage = 'home';
 var userProfile = null;
 var routeMap = { '/': 'home', '/room': 'rooms', '/players': 'players', '/panel': 'admin', '/profile': 'profile' };
+var ws = null;
 
 document.addEventListener('DOMContentLoaded', function() {
     setupNavigation();
@@ -13,6 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadServerConfig();
     checkSession();
     startStatusPolling();
+    connectWebSocket();
     var qp = new URLSearchParams(window.location.search).get('page');
     var initialPage = qp || routeMap[window.location.pathname] || 'home';
     navigateTo(initialPage, true);
@@ -384,4 +386,27 @@ async function loadProfile() {
         var rc = document.getElementById('profile-room-count');
         if (rc && statusData.rooms) rc.textContent = statusData.rooms.length;
     } catch (e) { console.error(e); }
+}
+
+function connectWebSocket() {
+    var protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    var wsUrl = protocol + '//' + window.location.host;
+    try {
+        ws = new WebSocket(wsUrl);
+        ws.onopen = function() { console.log('WebSocket connected'); };
+        ws.onmessage = function(e) {
+            try {
+                var msg = JSON.parse(e.data);
+                if (msg.type === 'rooms_update' || msg.type === 'room_update') {
+                    if (currentPage === 'home') loadHomeData();
+                    if (currentPage === 'rooms') loadRooms();
+                }
+                if (msg.type === 'players_update' || msg.type === 'player_update') {
+                    if (currentPage === 'players') loadPlayers();
+                }
+            } catch (ex) { }
+        };
+        ws.onclose = function() { console.log('WebSocket closed, reconnecting...'); setTimeout(connectWebSocket, 3000); };
+        ws.onerror = function() { ws.close(); };
+    } catch (e) { console.log('WebSocket not available'); }
 }

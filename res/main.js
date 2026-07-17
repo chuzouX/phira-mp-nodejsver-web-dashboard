@@ -37,7 +37,6 @@ class WebDashboardPlugin {
         this.statusCacheTime = 0;
         this.lastFederationRoomCount = -1;
         this.userSessions = new Map();
-        this.roomCreationDisabled = false;
         const app = this.api.getExpressApp();
         if (!app) {
             throw new Error('web-dashboard requires express app');
@@ -331,21 +330,42 @@ class WebDashboardPlugin {
             this.serveHtmlWithConfig(res, path_1.default.join(publicPath, 'index.html'));
         });
         this.app.get(['/room', '/room.html'], (_req, res) => {
-            if (_req.query.id) {
-                return this.serveHtmlWithConfig(res, path_1.default.join(publicPath, 'room.html'));
+            this.serveHtmlWithConfig(res, path_1.default.join(publicPath, 'room.html'));
+        });
+        this.app.get(['/players', '/players.html'], (req, res) => {
+            // 检查用户是否有管理员权限
+            let token = undefined;
+            if (req.cookies && req.cookies['access_token']) {
+                token = req.cookies['access_token'];
             }
-            return res.redirect('/?page=rooms');
-        });
-        this.app.get(['/players', '/players.html'], (_req, res) => {
-            return res.redirect('/?page=players');
-        });
-        this.app.get(['/panel', '/panel.html'], this.verifyUserRole('Admin').bind(this), (req, res) => {
-            if (req.query.embed === '1') {
-                return this.serveHtmlWithConfig(res, path_1.default.join(publicPath, 'panel.html'));
+            if (!token) {
+                const authHeader = req.headers['authorization'];
+                if (authHeader && authHeader.startsWith('Bearer ')) {
+                    token = authHeader.substring(7);
+                }
             }
-            return res.redirect('/?page=admin');
+            if (!token) {
+                return res.redirect('/');
+            }
+            const session = this.userSessions.get(token);
+            if (!session || Date.now() > session.expiresAt) {
+                return res.redirect('/');
+            }
+            if (!session.isAdmin && !session.isOwner) {
+                return res.redirect('/');
+            }
+            // 管理员可以访问 players 页面
+            this.serveHtmlWithConfig(res, path_1.default.join(publicPath, 'players.html'));
         });
-
+        this.app.get(['/manage', '/manage.html'], (_req, res) => {
+            this.serveHtmlWithConfig(res, path_1.default.join(publicPath, 'manage.html'));
+        });
+        this.app.get(['/login', '/login.html'], (_req, res) => {
+            this.serveHtmlWithConfig(res, path_1.default.join(publicPath, 'login.html'));
+        });
+        this.app.get(['/info', '/info.html'], (_req, res) => {
+            this.serveHtmlWithConfig(res, path_1.default.join(publicPath, 'info.html'));
+        });
         this.app.get('/icon.png', (_req, res) => {
             if (fs_1.default.existsSync(this.runtimeIconFile)) {
                 return res.sendFile(this.runtimeIconFile);
@@ -641,69 +661,6 @@ class WebDashboardPlugin {
                 return res.status(404).json({ error: 'Room not found' });
             room.cycle = !room.cycle;
             return res.json({ success: true });
-        });
-        this.app.post('/api/admin/bulk-action', this.verifyUserRole('Admin').bind(this), (req, res) => {
-            const { action, target, value } = req.body;
-            if (!action)
-                return res.status(400).json({ error: 'Missing action' });
-            const allRooms = this.roomManager.listRooms();
-            let targetIds;
-            if (!target || target.trim().toLowerCase() === 'all') {
-                targetIds = allRooms.map(r => r.id);
-            } else if (target.startsWith('#')) {
-                targetIds = target.substring(1).split(',').map((id) => id.trim());
-            } else {
-                return res.status(400).json({ error: 'Invalid target format' });
-            }
-            let affected = 0;
-            switch (action) {
-                case 'close_all':
-                    allRooms.forEach(room => {
-                        if (targetIds.includes(room.id)) {
-                            this.protocolHandler.closeRoomByAdmin(room.id);
-                            affected++;
-                        }
-                    });
-                    break;
-                case 'lock_all':
-                    allRooms.forEach(room => {
-                        if (targetIds.includes(room.id) && !room.locked) {
-                            this.protocolHandler.toggleRoomLock(room.id);
-                            affected++;
-                        }
-                    });
-                    break;
-                case 'unlock_all':
-                    allRooms.forEach(room => {
-                        if (targetIds.includes(room.id) && room.locked) {
-                            this.protocolHandler.toggleRoomLock(room.id);
-                            affected++;
-                        }
-                    });
-                    break;
-                case 'set_max_players':
-                    const n = Number(value);
-                    if (!Number.isFinite(n) || n < 1)
-                        return res.status(400).json({ error: 'Invalid max players' });
-                    allRooms.forEach(room => {
-                        if (targetIds.includes(room.id)) {
-                            this.protocolHandler.setRoomMaxPlayers(room.id, n);
-                            affected++;
-                        }
-                    });
-                    break;
-                case 'enable_room_creation':
-                    this.roomCreationDisabled = false;
-                    affected = allRooms.length;
-                    break;
-                case 'disable_room_creation':
-                    this.roomCreationDisabled = true;
-                    affected = allRooms.length;
-                    break;
-                default:
-                    return res.status(400).json({ error: 'Unknown action: ' + action });
-            }
-            return res.json({ success: true, affected });
         });
         this.app.get('/api/admin/room-blacklist', this.verifyUserRole('Admin').bind(this), (req, res) => {
             const roomId = req.query.roomId;
@@ -1041,6 +998,7 @@ const pluginModule = {
             captchaProvider: pluginConfig.captchaProvider ?? config.captchaProvider,
             geetestId: pluginConfig.geetestId ?? config.geetestId,
             geetestKey: pluginConfig.geetestKey ?? config.geetestKey,
+            allowedOrigins: pluginConfig.allowedOrigins ?? config.allowedOrigins,
             enablePubWeb: pluginConfig.enablePubWeb ?? config.enablePubWeb,
             pubPrefix: pluginConfig.pubPrefix ?? config.pubPrefix,
             enablePriWeb: pluginConfig.enablePriWeb ?? config.enablePriWeb,
