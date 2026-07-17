@@ -174,7 +174,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (socket && socket.readyState === WebSocket.OPEN) {
                         socket.send(JSON.stringify({ type: 'getRoomDetails', payload: { roomId: roomId } }));
                     }
-                }, 3000);
+                }, 1000);
             };
 
             socket.onmessage = function (event) {
