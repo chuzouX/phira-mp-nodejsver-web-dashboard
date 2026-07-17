@@ -104,20 +104,33 @@
     "panel_title": "Admin Management Panel",
     "server_control": "Server Control",
     "login_blacklist": "Panel Login Blacklist",
-    "room_creation": "Room Creation",
+    "room_creation": "Room Creation:",
     "enable": "Enable",
     "disable": "Disable",
     "bulk_target": "Target Rooms",
+    "target_rooms": "Target Rooms",
+    "select_all_rooms": "Select All Rooms",
     "close_all": "Close All",
     "lock_all": "Lock All",
     "unlock_all": "Unlock All",
     "set_size": "Set Size",
+    "size_placeholder": "Size",
+    "message_placeholder": "Message",
+    "broadcast": "Broadcast",
     "send": "Send",
+    "ban": "Ban",
     "content_required": "Content required",
     "target_required": "Target required",
     "invalid_size": "Invalid size",
     "action_failed": "Action failed",
     "confirm_bulk": "Confirm action for: {target}?",
+    "ip_placeholder": "Enter IP Address",
+    "seconds_placeholder": "Seconds (optional)",
+    "add_to_blacklist": "Add to Blacklist",
+    "blacklist_hint": "* IPs are automatically added here after too many failed login attempts.",
+    "ip_required": "Please enter an IP address",
+    "confirm_remove_blacklist": "Confirm remove {ip} from blacklist?",
+    "owner_required": "Owner access required",
     "footer_version": "FunXLink Studio Phira Management Panel v1.4"
   },
   "players": {
@@ -214,5 +227,10 @@
     "current_ip": "Current IP",
     "recent_activity": "Recent Activity",
     "no_activity": "No activity records"
+  },
+  "system": {
+    "uptime": "Uptime",
+    "memory": "Memory",
+    "node": "Node.js"
   }
 }

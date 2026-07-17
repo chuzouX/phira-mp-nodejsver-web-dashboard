@@ -104,20 +104,33 @@
     "panel_title": "管理后台",
     "server_control": "服务器控制",
     "login_blacklist": "管理面板登录黑名单",
-    "room_creation": "房间创建",
+    "room_creation": "房间创建：",
     "enable": "启用",
     "disable": "禁用",
     "bulk_target": "目标房间",
+    "target_rooms": "目标房间",
+    "select_all_rooms": "选择所有房间",
     "close_all": "关闭全部",
     "lock_all": "锁定全部",
     "unlock_all": "解锁全部",
     "set_size": "设置人数",
+    "size_placeholder": "人数",
+    "message_placeholder": "消息内容",
+    "broadcast": "全服广播",
     "send": "发送",
+    "ban": "封禁",
     "content_required": "请输入内容",
     "target_required": "请输入目标",
     "invalid_size": "人数格式不正确",
     "action_failed": "操作失败",
-    "confirm_bulk": "确定要对范围 “{target}” 执行此操作吗？",
+    "confirm_bulk": "确定要对范围 \"{target}\" 执行此操作吗？",
+    "ip_placeholder": "请输入 IP 地址",
+    "seconds_placeholder": "秒数（可选）",
+    "add_to_blacklist": "加入黑名单",
+    "blacklist_hint": "* 多次登录失败后 IP 将被自动加入此列表",
+    "ip_required": "请输入 IP 地址",
+    "confirm_remove_blacklist": "确认从黑名单移除 {ip}？",
+    "owner_required": "需要 Owner 权限",
     "footer_version": "FunXLink Studio Phira 管理后台 v1.4"
   },
   "players": {
@@ -214,5 +227,10 @@
     "current_ip": "当前 IP",
     "recent_activity": "最近活动",
     "no_activity": "暂无活动记录"
+  },
+  "system": {
+    "uptime": "运行时间",
+    "memory": "内存占用",
+    "node": "Node.js"
   }
 }

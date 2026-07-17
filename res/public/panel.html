@@ -30,23 +30,23 @@
             <section class="panel-card">
                 <h2 data-i18n="admin.server_control">Server Control</h2>
                 <div class="ban-add-section">
-                    <strong data-i18n="room.admin.message">Global Broadcast</strong>
+                    <strong data-i18n="admin.broadcast">Broadcast</strong>
                     <div class="room-selector-container">
                         <div class="select-all-row">
                             <input type="checkbox" id="broadcast-all-rooms" onchange="toggleSelectAll('broadcast')" checked>
-                            <label for="broadcast-all-rooms">Select All Rooms</label>
+                            <label for="broadcast-all-rooms" data-i18n="admin.select_all_rooms">Select All Rooms</label>
                         </div>
                         <div id="broadcast-room-chips" class="room-chip-container" style="display: none;"></div>
                     </div>
                     <div class="action-group">
-                        <input type="text" id="broadcast-content" placeholder="Message" style="flex: 1;">
-                        <button onclick="adminAction('broadcast')" class="admin-btn action-primary">Send</button>
+                        <input type="text" id="broadcast-content" data-i18n-placeholder="admin.message_placeholder" placeholder="Message" style="flex: 1;">
+                        <button onclick="adminAction('broadcast')" class="admin-btn action-primary" data-i18n="admin.send">Send</button>
                     </div>
                 </div>
                 <div class="action-group" style="margin-top:12px">
-                    <span style="font-weight:600;font-size:0.8rem;">Room Creation:</span>
-                    <button onclick="adminAction('enable_creation')" class="admin-btn action-success">Enable</button>
-                    <button onclick="adminAction('disable_creation')" class="admin-btn action-warning">Disable</button>
+                    <span style="font-weight:600;font-size:0.8rem;" data-i18n="admin.room_creation">Room Creation:</span>
+                    <button onclick="adminAction('enable_creation')" class="admin-btn action-success" data-i18n="admin.enable">Enable</button>
+                    <button onclick="adminAction('disable_creation')" class="admin-btn action-warning" data-i18n="admin.disable">Disable</button>
                 </div>
             </section>
 
@@ -54,21 +54,21 @@
             <section class="panel-card">
                 <h2 data-i18n="room.admin.bulk_action">Bulk Room Control</h2>
                 <div class="ban-add-section">
-                    <strong style="margin-bottom:8px;display:block;">Target Rooms</strong>
+                    <strong style="margin-bottom:8px;display:block;" data-i18n="admin.target_rooms">Target Rooms</strong>
                     <div class="room-selector-container">
                         <div class="select-all-row">
                             <input type="checkbox" id="bulk-all-rooms" onchange="toggleSelectAll('bulk')" checked>
-                            <label for="bulk-all-rooms">Select All Rooms</label>
+                            <label for="bulk-all-rooms" data-i18n="admin.select_all_rooms">Select All Rooms</label>
                         </div>
                         <div id="bulk-room-chips" class="room-chip-container" style="display: none;"></div>
                     </div>
                     <div class="action-group">
-                        <button onclick="adminAction('close_bulk')" class="admin-btn action-danger">Close All</button>
-                        <button onclick="adminAction('lock_bulk')" class="admin-btn action-warning">Lock All</button>
-                        <button onclick="adminAction('unlock_bulk')" class="admin-btn action-success">Unlock All</button>
+                        <button onclick="adminAction('close_bulk')" class="admin-btn action-danger" data-i18n="admin.close_all">Close All</button>
+                        <button onclick="adminAction('lock_bulk')" class="admin-btn action-warning" data-i18n="admin.lock_all">Lock All</button>
+                        <button onclick="adminAction('unlock_bulk')" class="admin-btn action-success" data-i18n="admin.unlock_all">Unlock All</button>
                         <span style="color:var(--text-tertiary);margin:0 4px;">|</span>
-                        <input type="number" id="bulk-size" placeholder="Size" style="width:70px;">
-                        <button onclick="adminAction('size_bulk')" class="admin-btn action-warning">Set Size</button>
+                        <input type="number" id="bulk-size" data-i18n-placeholder="admin.size_placeholder" placeholder="Size" style="width:70px;">
+                        <button onclick="adminAction('size_bulk')" class="admin-btn action-warning" data-i18n="admin.set_size">Set Size</button>
                     </div>
                 </div>
             </section>
@@ -80,25 +80,25 @@
                     <div class="ban-section">
                         <h4 data-i18n="ban.user_id_bans">User ID Bans</h4>
                         <div class="ban-table-container">
-                            <table class="ban-table"><thead><tr><th data-i18n="ban.target">Target</th><th data-i18n="ban.reason">Reason</th><th data-i18n="ban.expires">Expires</th><th data-i18n="ban.action">Action</th></tr></thead><tbody id="id-ban-list-body"></tbody></table>
+                            <table class="ban-table"><thead><tr><th data-i18n="ban.target">Target</th><th data-i18n="ban.reason">Reason</th><th data-i18n="ban.expires">Expires</th><th class="admin-col" data-i18n="ban.admin">Admin</th><th data-i18n="ban.action">Action</th></tr></thead><tbody id="id-ban-list-body"></tbody></table>
                         </div>
                     </div>
                     <div class="ban-section">
                         <h4 data-i18n="ban.ip_bans">In-game IP Bans</h4>
                         <div class="ban-table-container">
-                            <table class="ban-table"><thead><tr><th data-i18n="ban.target">Target</th><th data-i18n="ban.reason">Reason</th><th data-i18n="ban.expires">Expires</th><th data-i18n="ban.action">Action</th></tr></thead><tbody id="ip-ban-list-body"></tbody></table>
+                            <table class="ban-table"><thead><tr><th data-i18n="ban.target">Target</th><th data-i18n="ban.reason">Reason</th><th data-i18n="ban.expires">Expires</th><th class="admin-col" data-i18n="ban.admin">Admin</th><th data-i18n="ban.action">Action</th></tr></thead><tbody id="ip-ban-list-body"></tbody></table>
                         </div>
                     </div>
                 </div>
                 <div class="ban-add-section">
                     <strong data-i18n="ban.ban_user">Ban User/IP</strong>
                     <div class="action-group">
-                        <select id="ban-type-select" onchange="updateBanTargetUI()"><option value="id">User ID</option><option value="ip">Game IP</option></select>
-                        <input type="text" id="ban-target-input" list="ban-target-list" placeholder="Target" style="flex:1">
+                        <select id="ban-type-select" onchange="updateBanTargetUI()"><option value="id" data-i18n="ban.type_user_id">User ID</option><option value="ip" data-i18n="ban.type_game_ip">Game IP</option></select>
+                        <input type="text" id="ban-target-input" list="ban-target-list" data-i18n-placeholder="ban.target_placeholder" placeholder="Target" style="flex:1">
                         <datalist id="ban-target-list"></datalist>
-                        <input type="number" id="ban-duration-input" placeholder="Seconds" style="width:100px">
-                        <input type="text" id="ban-reason-input" placeholder="Reason" style="flex:1">
-                        <button onclick="executeBan()" class="admin-btn action-danger">Ban</button>
+                        <input type="number" id="ban-duration-input" data-i18n-placeholder="ban.duration_placeholder" placeholder="Seconds" style="width:100px">
+                        <input type="text" id="ban-reason-input" data-i18n-placeholder="ban.reason_placeholder" placeholder="Reason" style="flex:1">
+                        <button onclick="executeBan()" class="admin-btn action-danger" data-i18n="admin.ban">Ban</button>
                     </div>
                 </div>
             </section>
@@ -108,9 +108,9 @@
                 <h2 data-i18n="admin.login_blacklist">Panel Login Blacklist</h2>
                 <div class="ban-add-section" style="margin-bottom: 15px;">
                     <div class="action-group">
-                        <input type="text" id="blacklist-ip-input" placeholder="Enter IP Address" style="flex: 1;">
-                        <input type="number" id="blacklist-duration-input" placeholder="Seconds (optional)" style="width: 150px;">
-                        <button onclick="blacklistIpManually()" class="admin-btn action-danger">Add to Blacklist</button>
+                        <input type="text" id="blacklist-ip-input" data-i18n-placeholder="admin.ip_placeholder" placeholder="Enter IP Address" style="flex: 1;">
+                        <input type="number" id="blacklist-duration-input" data-i18n-placeholder="admin.seconds_placeholder" placeholder="Seconds (optional)" style="width: 150px;">
+                        <button onclick="blacklistIpManually()" class="admin-btn action-danger" data-i18n="admin.add_to_blacklist">Add to Blacklist</button>
                     </div>
                 </div>
                 <div class="ban-table-container">
@@ -125,7 +125,7 @@
                         <tbody id="login-blacklist-body"></tbody>
                     </table>
                 </div>
-                <div style="margin-top: 10px; color: var(--text-tertiary); font-size: 0.85rem;">
+                <div style="margin-top: 10px; color: var(--text-tertiary); font-size: 0.85rem;" data-i18n="admin.blacklist_hint">
                     * IPs are automatically added here after too many failed login attempts to the admin panel.
                 </div>
             </section>
@@ -134,7 +134,7 @@
             <section class="panel-card">
                 <h2 data-i18n="admin.system_info">System Info</h2>
                 <div class="system-info-grid" id="system-info">
-                    <div style="color:var(--text-tertiary);text-align:center;padding:20px;">Loading...</div>
+                    <div style="color:var(--text-tertiary);text-align:center;padding:20px;" data-i18n="common.loading">Loading...</div>
                 </div>
             </section>
         </div>
@@ -148,20 +148,15 @@
     </div>
 
     <script>
-        // Auth Check
         async function checkAuth() {
             try {
                 const res = await fetch('/check-auth');
                 const auth = await res.json();
-                if (!auth.isAdmin) {
-                    window.location.href = '/admin';
-                }
+                if (!auth.isAdmin) { window.location.href = '/admin'; }
             } catch (e) { window.location.href = '/admin'; }
         }
 
-        // Room Selection Logic
         let activeRooms = [];
-
         async function fetchActiveRooms() {
             try {
                 const res = await fetch('/api/status');
@@ -173,7 +168,6 @@
         }
 
         let onlinePlayers = [];
-
         async function fetchOnlinePlayers() {
             try {
                 const res = await fetch('/api/all-players');
@@ -186,12 +180,9 @@
             const type = document.getElementById('ban-type-select').value;
             const dl = document.getElementById('ban-target-list');
             if (!dl) return;
-            
             dl.innerHTML = '';
-            
             onlinePlayers.forEach(p => {
-                if (p.id === -1) return; // Skip system bot
-                
+                if (p.id === -1) return;
                 const option = document.createElement('option');
                 if (type === 'id') {
                     option.value = p.id;
@@ -214,12 +205,10 @@
             const container = document.getElementById(`${prefix}-room-chips`);
             if (!container) return;
             container.innerHTML = '';
-            
             if (activeRooms.length === 0) {
                 container.innerHTML = `<div style="color: var(--text-muted); padding: 5px; font-size: 0.85rem;">${I18n.t('index.no_rooms')}</div>`;
                 return;
             }
-
             activeRooms.forEach(room => {
                 const chip = document.createElement('div');
                 chip.className = 'room-chip';
@@ -236,22 +225,16 @@
             container.style.display = isAll ? 'none' : 'flex';
         }
 
-        function toggleChip(prefix, chip) {
-            chip.classList.toggle('selected');
-        }
+        function toggleChip(prefix, chip) { chip.classList.toggle('selected'); }
 
         function getSelectedRooms(prefix) {
             const isAll = document.getElementById(`${prefix}-all-rooms`).checked;
             if (isAll) return 'all';
-            
-            const selected = Array.from(document.querySelectorAll(`#${prefix}-room-chips .room-chip.selected`))
-                .map(c => c.dataset.id);
-            
+            const selected = Array.from(document.querySelectorAll(`#${prefix}-room-chips .room-chip.selected`)).map(c => c.dataset.id);
             if (selected.length === 0) return null;
             return '#' + selected.join(',');
         }
 
-        // Action implementation
         async function adminAction(action) {
             try {
                 if (action === 'broadcast') {
@@ -259,44 +242,22 @@
                     if (!target) return alert(I18n.t('admin.target_required'));
                     const content = document.getElementById('broadcast-content').value;
                     if (!content) return alert(I18n.t('admin.content_required'));
-                    const res = await fetch('/api/admin/broadcast', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ content, target })
-                    });
+                    const res = await fetch('/api/admin/broadcast', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content, target }) });
                     if ((await res.json()).success) alert(I18n.t('room.admin.success'));
                 } else if (action === 'enable_creation' || action === 'disable_creation') {
-                    const res = await fetch('/api/admin/bulk-action', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ action: action === 'enable_creation' ? 'enable_room_creation' : 'disable_room_creation' })
-                    });
+                    const res = await fetch('/api/admin/bulk-action', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: action === 'enable_creation' ? 'enable_room_creation' : 'disable_room_creation' }) });
                     if ((await res.json()).success) alert(I18n.t('room.admin.success'));
                 } else {
                     const target = getSelectedRooms('bulk');
                     if (!target) return alert(I18n.t('admin.target_required'));
-                    let apiAction = '';
-                    let value = undefined;
+                    let apiAction = '', value = undefined;
                     if (action === 'close_bulk') apiAction = 'close_all';
                     else if (action === 'lock_bulk') apiAction = 'lock_all';
                     else if (action === 'unlock_bulk') apiAction = 'unlock_all';
-                    else if (action === 'size_bulk') {
-                        apiAction = 'set_max_players';
-                        value = parseInt(document.getElementById('bulk-size').value);
-                        if (isNaN(value)) return alert(I18n.t('admin.invalid_size'));
-                    }
+                    else if (action === 'size_bulk') { apiAction = 'set_max_players'; value = parseInt(document.getElementById('bulk-size').value); if (isNaN(value)) return alert(I18n.t('admin.invalid_size')); }
                     if (!confirm(I18n.t('admin.confirm_bulk').replace('{target}', target))) return;
-                    const res = await fetch('/api/admin/bulk-action', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ action: apiAction, target, value })
-                    });
-                    if ((await res.json()).success) {
-                        alert(I18n.t('room.admin.success'));
-                        if (action === 'close_bulk') {
-                            await fetchActiveRooms();
-                        }
-                    }
+                    const res = await fetch('/api/admin/bulk-action', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: apiAction, target, value }) });
+                    if ((await res.json()).success) { alert(I18n.t('room.admin.success')); if (action === 'close_bulk') await fetchActiveRooms(); }
                 }
             } catch (e) { alert(I18n.t('admin.action_failed')); }
         }
@@ -323,20 +284,10 @@
             const durationInput = document.getElementById('blacklist-duration-input');
             const ip = ipInput.value.trim();
             const duration = durationInput.value.trim();
-            if (!ip) return alert('Please enter an IP address');
-            
+            if (!ip) return alert(I18n.t('admin.ip_required'));
             try {
-                const res = await fetch('/api/admin/blacklist-ip', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ip, duration: duration || null })
-                });
-                if ((await res.json()).success) {
-                    alert(I18n.t('room.admin.success'));
-                    ipInput.value = '';
-                    durationInput.value = '';
-                    await fetchLoginBlacklist();
-                }
+                const res = await fetch('/api/admin/blacklist-ip', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ip, duration: duration || null }) });
+                if ((await res.json()).success) { alert(I18n.t('room.admin.success')); ipInput.value = ''; durationInput.value = ''; await fetchLoginBlacklist(); }
             } catch (e) { alert(I18n.t('admin.action_failed')); }
         }
 
@@ -344,34 +295,20 @@
             const body = document.getElementById('login-blacklist-body');
             if (!body) return;
             body.innerHTML = '';
-            if (ips.length === 0) {
-                body.innerHTML = `<tr><td colspan="3" style="text-align:center;">No IPs in blacklist</td></tr>`;
-                return;
-            }
+            if (ips.length === 0) { body.innerHTML = `<tr><td colspan="3" style="text-align:center;">${I18n.t('ban.no_bans')}</td></tr>`; return; }
             ips.forEach(item => {
                 const row = document.createElement('tr');
                 const expiresStr = new Date(item.expiresAt).toLocaleString();
-                row.innerHTML = `
-                    <td>${item.ip}</td>
-                    <td>${expiresStr}</td>
-                    <td><button class="admin-btn action-success" style="margin:0; padding:4px 12px;" onclick="unblacklistIp('${item.ip}')">${I18n.t('players.unban')}</button></td>
-                `;
+                row.innerHTML = `<td>${item.ip}</td><td>${expiresStr}</td><td><button class="admin-btn action-success" style="margin:0; padding:4px 12px;" onclick="unblacklistIp('${item.ip}')">${I18n.t('players.unban')}</button></td>`;
                 body.appendChild(row);
             });
         }
 
         async function unblacklistIp(ip) {
-            if (!confirm(`Confirm remove ${ip} from login blacklist?`)) return;
+            if (!confirm(I18n.t('admin.confirm_remove_blacklist').replace('{ip}', ip))) return;
             try {
-                const res = await fetch('/api/admin/unblacklist-ip', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ip })
-                });
-                if ((await res.json()).success) {
-                    alert(I18n.t('room.admin.success'));
-                    await fetchLoginBlacklist();
-                }
+                const res = await fetch('/api/admin/unblacklist-ip', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ip }) });
+                if ((await res.json()).success) { alert(I18n.t('room.admin.success')); await fetchLoginBlacklist(); }
             } catch (e) { alert(I18n.t('admin.action_failed')); }
         }
 
@@ -380,11 +317,10 @@
                 const res = await fetch('/api/owner/system-info');
                 const data = await res.json();
                 document.getElementById('system-info').innerHTML =
-                    '<div class="system-info-item"><span class="label">Uptime</span><span class="value">' + formatUptime(data.uptime) + '</span></div>' +
-                    '<div class="system-info-item"><span class="label">RSS</span><span class="value">' + ((data.memory && data.memory.rss) || 0) + ' MB</span></div>' +
-                    '<div class="system-info-item"><span class="label">Heap</span><span class="value">' + ((data.memory && data.memory.heapUsed) || 0) + ' MB</span></div>' +
-                    '<div class="system-info-item"><span class="label">Node</span><span class="value">' + (data.nodeVersion || '-') + '</span></div>';
-            } catch (e) { document.getElementById('system-info').innerHTML = '<div style="color:var(--text-tertiary);text-align:center;padding:20px;">Owner access required</div>'; }
+                    `<div class="system-info-item"><span class="label">${I18n.t('system.uptime')}</span><span class="value">${formatUptime(data.uptime)}</span></div>` +
+                    `<div class="system-info-item"><span class="label">${I18n.t('system.memory')}</span><span class="value">${((data.memory && data.memory.rss) || 0)} MB</span></div>` +
+                    `<div class="system-info-item"><span class="label">${I18n.t('system.node')}</span><span class="value">${data.nodeVersion || '-'}</span></div>`;
+            } catch (e) { document.getElementById('system-info').innerHTML = `<div style="color:var(--text-tertiary);text-align:center;padding:20px;">${I18n.t('admin.owner_required')}</div>`; }
         }
 
         function formatUptime(s) {
@@ -396,20 +332,11 @@
             const body = document.getElementById(`${type}-ban-list-body`);
             if (!body) return;
             body.innerHTML = '';
-            if (bans.length === 0) {
-                body.innerHTML = `<tr><td colspan="5" style="text-align:center;">${I18n.t('ban.no_bans')}</td></tr>`;
-                return;
-            }
+            if (bans.length === 0) { body.innerHTML = `<tr><td colspan="5" style="text-align:center;">${I18n.t('ban.no_bans')}</td></tr>`; return; }
             bans.forEach(ban => {
                 const row = document.createElement('tr');
                 const expiresStr = ban.expiresAt ? new Date(ban.expiresAt).toLocaleString() : I18n.t('ban.permanent');
-                row.innerHTML = `
-                    <td>${ban.target}</td>
-                    <td title="${ban.reason}">${ban.reason}</td>
-                    <td>${expiresStr}</td>
-                    <td>${ban.adminName || 'Unknown'}</td>
-                    <td><button class="admin-btn action-success" style="margin:0; padding:4px 12px;" onclick="unbanTarget('${type}', '${ban.target}')">${I18n.t('players.unban')}</button></td>
-                `;
+                row.innerHTML = `<td>${ban.target}</td><td title="${ban.reason}">${ban.reason}</td><td>${expiresStr}</td><td>${ban.adminName || I18n.t('common.unknown')}</td><td><button class="admin-btn action-success" style="margin:0; padding:4px 12px;" onclick="unbanTarget('${type}', '${ban.target}')">${I18n.t('players.unban')}</button></td>`;
                 body.appendChild(row);
             });
         }
@@ -417,51 +344,30 @@
         async function executeBan() {
             const type = document.getElementById('ban-type-select').value;
             const target = document.getElementById('ban-target-input').value.trim();
-            
             const duration = document.getElementById('ban-duration-input').value.trim();
             const reason = document.getElementById('ban-reason-input').value.trim();
-            
             if (!target) return alert(I18n.t('admin.target_required'));
-            
             try {
-                const res = await fetch('/api/admin/ban', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ type, target, duration: duration || null, reason: reason || null })
-                });
-                if ((await res.json()).success) {
-                    alert(I18n.t('room.admin.success'));
-                    document.getElementById('ban-target-input').value = '';
-                    await fetchBans();
-                    if (type === 'id') await fetchOnlinePlayers();
-                }
+                const res = await fetch('/api/admin/ban', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type, target, duration: duration || null, reason: reason || null }) });
+                if ((await res.json()).success) { alert(I18n.t('room.admin.success')); document.getElementById('ban-target-input').value = ''; await fetchBans(); if (type === 'id') await fetchOnlinePlayers(); }
             } catch (e) { alert(I18n.t('admin.action_failed')); }
         }
 
         async function unbanTarget(type, target) {
             if (!confirm(I18n.t('ban.confirm_unban').replace('{target}', target))) return;
             try {
-                const res = await fetch('/api/admin/unban', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ type, target })
-                });
-                if ((await res.json()).success) {
-                    alert(I18n.t('room.admin.success'));
-                    await fetchBans();
-                }
+                const res = await fetch('/api/admin/unban', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type, target }) });
+                if ((await res.json()).success) { alert(I18n.t('room.admin.success')); await fetchBans(); }
             } catch (e) { alert(I18n.t('admin.action_failed')); }
         }
 
-        // Theme Toggle
-        const themeToggle = document.getElementById('theme-toggle');
-        themeToggle.addEventListener('click', () => {
+        // Theme
+        document.getElementById('theme-toggle').addEventListener('click', () => {
             const isLight = document.body.classList.toggle('light-mode');
             localStorage.setItem('theme', isLight ? 'light' : 'dark');
             document.getElementById('theme-icon').textContent = isLight ? 'Light' : 'Dark';
         });
 
-        // Init
         document.addEventListener('i18nReady', () => {
             checkAuth();
             fetchBans();
@@ -469,15 +375,11 @@
             fetchActiveRooms();
             fetchOnlinePlayers();
             loadSystemInfo();
-            
-            // Periodically refresh lists
             setInterval(fetchActiveRooms, 5000);
             setInterval(fetchOnlinePlayers, 5000);
             setInterval(fetchLoginBlacklist, 10000);
-
             const isLight = document.body.classList.contains('light-mode');
             document.getElementById('theme-icon').textContent = isLight ? 'Light' : 'Dark';
-
             if (window.SERVER_CONFIG && window.SERVER_CONFIG.displayIp) {
                 document.getElementById('server-ip').textContent = window.SERVER_CONFIG.displayIp;
             }
