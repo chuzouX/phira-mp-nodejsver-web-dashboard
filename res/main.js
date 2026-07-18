@@ -224,9 +224,17 @@ class WebDashboardPlugin {
             this.logger.warn('[WebDashboard] 安全警告：正在使用默认的 Session Secret。请在 config/web-dashboard/config.yaml 中设置 sessionSecret。');
         }
         this.app.use(this.sessionParser);
-        this.app.use((_req, res, next) => {
-            res.header('Access-Control-Allow-Origin', '*');
-            res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, x-admin-token');
+        this.app.use((req, res, next) => {
+            const origin = req.headers['origin'];
+            const allowed = this.config.allowedOrigins || [];
+            // 允许同源请求和配置的跨域来源
+            if (!origin || allowed.length === 0 || allowed.some(a => {
+                try { return new URL(a).origin === origin; } catch { return false; }
+            })) {
+                res.header('Access-Control-Allow-Origin', origin || '*');
+            }
+            res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+            res.header('Access-Control-Allow-Credentials', 'true');
             next();
         });
     }
@@ -435,10 +443,14 @@ class WebDashboardPlugin {
             });
         });
         // User login API
-        this.app.post('/api/user-login', async (req, res) => {
+        this.app.post('/api/user-login', this.rateLimitMiddleware.bind(this), async (req, res) => {
             const { email, password } = req.body;
             if (!email || !password)
                 return res.status(400).json({ success: false, error: 'Missing email or password' });
+            const ip = this.getRealIp(req);
+            if (this.isBlacklisted(ip)) {
+                return res.status(403).json({ success: false, error: 'IP被暂时封禁，请稍后再试' });
+            }
             try {
                 const response = await fetch('https://phira.5wyxi.com/login', {
                     method: 'POST',
@@ -448,7 +460,7 @@ class WebDashboardPlugin {
                 const data = await response.json();
                 if (response.ok && data.token) {
                     res.cookie('access_token', data.token, {
-                        httpOnly: false,
+                        httpOnly: true,
                         maxAge: 30 * 24 * 60 * 60 * 1000,
                         sameSite: 'lax'
                     });
@@ -487,6 +499,15 @@ class WebDashboardPlugin {
                     return res.json({ success: true, user: { id: data.id, ...data, isAdmin, isOwner } });
                 }
                 else {
+                    const now = Date.now();
+                    const attempt = this.loginAttempts.get(ip) || { count: 0, lastAttempt: 0 };
+                    attempt.count++;
+                    attempt.lastAttempt = now;
+                    this.loginAttempts.set(ip, attempt);
+                    if (attempt.count >= 5) {
+                        this.logToBlacklist(ip, email);
+                        this.loginAttempts.delete(ip);
+                    }
                     return res.status(401).json({ success: false, error: data.error || 'Invalid credentials' });
                 }
             }
@@ -570,6 +591,7 @@ class WebDashboardPlugin {
             }));
             return res.json(publicPlayers);
         });
+        this.app.use('/api/admin', this.rateLimitMiddleware.bind(this));
         this.app.post('/api/admin/server-message', this.verifyUserRole('Admin').bind(this), (req, res) => {
             const { roomId, content } = req.body;
             if (!roomId || !content) {
