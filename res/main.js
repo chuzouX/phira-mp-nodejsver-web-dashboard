@@ -329,6 +329,11 @@ class WebDashboardPlugin {
         this.app.get(['/', '/index.html'], (_req, res) => {
             this.serveHtmlWithConfig(res, path_1.default.join(publicPath, 'index.html'));
         });
+        require('./routes')(this.app, {
+            serveHtmlWithConfig: this.serveHtmlWithConfig.bind(this),
+            verifyUserRole: this.verifyUserRole.bind(this),
+            publicPath,
+        });
         this.app.get(['/room', '/room.html'], (req, res) => {
             if (req.query.id) {
                 return this.serveHtmlWithConfig(res, path_1.default.join(publicPath, 'room.html'));
