@@ -227,9 +227,13 @@ class WebDashboardPlugin {
         this.app.use((req, res, next) => {
             const origin = req.headers['origin'];
             const allowed = this.config.allowedOrigins || [];
-            // 允许同源请求和配置的跨域来源
             if (!origin || allowed.length === 0 || allowed.some(a => {
-                try { return new URL(a).origin === origin; } catch { return false; }
+                try {
+                    return new URL(a).origin === origin;
+                }
+                catch {
+                    return false;
+                }
             })) {
                 res.header('Access-Control-Allow-Origin', origin || '*');
             }
@@ -337,11 +341,6 @@ class WebDashboardPlugin {
         this.app.get(['/', '/index.html'], (_req, res) => {
             this.serveHtmlWithConfig(res, path_1.default.join(publicPath, 'index.html'));
         });
-        require('./routes')(this.app, {
-            serveHtmlWithConfig: this.serveHtmlWithConfig.bind(this),
-            verifyUserRole: this.verifyUserRole.bind(this),
-            publicPath,
-        });
         this.app.get(['/room', '/room.html'], (req, res) => {
             if (req.query.id) {
                 return this.serveHtmlWithConfig(res, path_1.default.join(publicPath, 'room.html'));
@@ -357,7 +356,6 @@ class WebDashboardPlugin {
             }
             return res.redirect('/?page=admin');
         });
-
         this.app.get('/icon.png', (_req, res) => {
             if (fs_1.default.existsSync(this.runtimeIconFile)) {
                 return res.sendFile(this.runtimeIconFile);

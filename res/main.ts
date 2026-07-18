@@ -271,9 +271,16 @@ class WebDashboardPlugin {
 
     this.app.use(this.sessionParser);
 
-    this.app.use((_req, res, next) => {
-      res.header('Access-Control-Allow-Origin', '*');
-      res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, x-admin-token');
+    this.app.use((req, res, next) => {
+      const origin = req.headers['origin'];
+      const allowed = this.config.allowedOrigins || [];
+      if (!origin || allowed.length === 0 || allowed.some(a => {
+        try { return new URL(a).origin === origin; } catch { return false; }
+      })) {
+        res.header('Access-Control-Allow-Origin', origin || '*');
+      }
+      res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+      res.header('Access-Control-Allow-Credentials', 'true');
       next();
     });
   }
@@ -394,51 +401,22 @@ class WebDashboardPlugin {
       this.serveHtmlWithConfig(res, path.join(publicPath, 'index.html'));
     });
 
-    this.app.get(['/room', '/room.html'], (_req, res) => {
-      this.serveHtmlWithConfig(res, path.join(publicPath, 'room.html'));
+    this.app.get(['/room', '/room.html'], (req, res) => {
+      if (req.query.id) {
+        return this.serveHtmlWithConfig(res, path.join(publicPath, 'room.html'));
+      }
+      return res.redirect('/?page=rooms');
     });
 
-    this.app.get(['/players', '/players.html'], (req, res) => {
-      // 检查用户是否有管理员权限
-      let token = undefined;
-      if (req.cookies && req.cookies['access_token']) {
-        token = req.cookies['access_token'];
-      }
-      
-      if (!token) {
-        const authHeader = req.headers['authorization'];
-        if (authHeader && authHeader.startsWith('Bearer ')) {
-          token = authHeader.substring(7);
-        }
-      }
-      
-      if (!token) {
-        return res.redirect('/');
-      }
-      
-      const session = this.userSessions.get(token);
-      if (!session || Date.now() > session.expiresAt) {
-        return res.redirect('/');
-      }
-      
-      if (!session.isAdmin && !session.isOwner) {
-        return res.redirect('/');
-      }
-      
-      // 管理员可以访问 players 页面
-      this.serveHtmlWithConfig(res, path.join(publicPath, 'players.html'));
+    this.app.get(['/players', '/players.html'], (_req, res) => {
+      return res.redirect('/?page=players');
     });
 
-    this.app.get(['/manage', '/manage.html'], (_req, res) => {
-      this.serveHtmlWithConfig(res, path.join(publicPath, 'manage.html'));
-    });
-
-    this.app.get(['/login', '/login.html'], (_req, res) => {
-      this.serveHtmlWithConfig(res, path.join(publicPath, 'login.html'));
-    });
-
-    this.app.get(['/info', '/info.html'], (_req, res) => {
-      this.serveHtmlWithConfig(res, path.join(publicPath, 'info.html'));
+    this.app.get(['/panel', '/panel.html'], this.verifyUserRole('Admin').bind(this), (req, res) => {
+      if (req.query.embed === '1') {
+        return this.serveHtmlWithConfig(res, path.join(publicPath, 'panel.html'));
+      }
+      return res.redirect('/?page=admin');
     });
 
     this.app.get('/icon.png', (_req, res) => {
@@ -541,9 +519,14 @@ class WebDashboardPlugin {
     });
 
     // User login API
-    this.app.post('/api/user-login', async (req, res) => {
+    this.app.post('/api/user-login', this.rateLimitMiddleware.bind(this), async (req, res) => {
       const { email, password } = req.body;
       if (!email || !password) return res.status(400).json({ success: false, error: 'Missing email or password' });
+
+      const ip = this.getRealIp(req);
+      if (this.isBlacklisted(ip)) {
+        return res.status(403).json({ success: false, error: 'IP被暂时封禁，请稍后再试' });
+      }
 
       try {
         const response = await fetch('https://phira.5wyxi.com/login', {
@@ -556,7 +539,7 @@ class WebDashboardPlugin {
         
         if (response.ok && data.token) {
           res.cookie('access_token', data.token, {
-            httpOnly: false,
+            httpOnly: true,
             maxAge: 30 * 24 * 60 * 60 * 1000,
             sameSite: 'lax'
           });
@@ -599,6 +582,15 @@ class WebDashboardPlugin {
 
           return res.json({ success: true, user: { id: data.id, ...data, isAdmin, isOwner } });
         } else {
+          const now = Date.now();
+          const attempt = this.loginAttempts.get(ip) || { count: 0, lastAttempt: 0 };
+          attempt.count++;
+          attempt.lastAttempt = now;
+          this.loginAttempts.set(ip, attempt);
+          if (attempt.count >= 5) {
+            this.logToBlacklist(ip, email);
+            this.loginAttempts.delete(ip);
+          }
           return res.status(401).json({ success: false, error: data.error || 'Invalid credentials' });
         }
       } catch (e) {
@@ -677,6 +669,7 @@ class WebDashboardPlugin {
       return res.json(publicPlayers);
     });
 
+    this.app.use('/api/admin', this.rateLimitMiddleware.bind(this));
     this.app.post('/api/admin/server-message', this.verifyUserRole('Admin').bind(this), (req, res) => {
       const { roomId, content } = req.body;
       if (!roomId || !content) {
