@@ -1,10 +1,10 @@
 # Web Dashboard 插件默认配置
 
 # 显示的服务器 IP/域名（用于前端显示）
-displayIp: "your-server.com:666"
+displayIp: 'your-server.com:666'
 
 # Session 密钥（强烈建议修改为随机字符串）
-sessionSecret: "change-this-to-a-random-secret"
+sessionSecret: 'change-this-to-a-random-secret'
 
 # 登录失败后 IP 黑名单持续时间（秒）
 loginBlacklistDuration: 600
@@ -18,8 +18,8 @@ captchaProvider: none
 
 # 公开房间过滤（是否只显示带特定前缀的房间）
 enablePubWeb: false
-pubPrefix: "pub"
+pubPrefix: 'pub'
 
 # 私密房间过滤（是否隐藏带特定前缀的房间）
 enablePriWeb: false
-priPrefix: "sm"
+priPrefix: 'sm'

@@ -35,7 +35,6 @@ class WebDashboardPlugin {
         this.rateLimits = new Map();
         this.cachedStatus = null;
         this.statusCacheTime = 0;
-        this.lastFederationRoomCount = -1;
         this.userSessions = new Map();
         const app = this.api.getExpressApp();
         if (!app) {
@@ -51,12 +50,11 @@ class WebDashboardPlugin {
                 secure: process.env.NODE_ENV === 'production',
                 httpOnly: true,
                 sameSite: 'lax',
-                maxAge: 24 * 60 * 60 * 1000
-            }
+                maxAge: 24 * 60 * 60 * 1000,
+            },
         });
         this.setupMiddleware();
         this.setupRoutes();
-        this.setupFederationRoutes();
         this.loadBlacklist();
         this.cleanupInterval = setInterval(() => {
             this.cleanupLoginAttemptsAndRateLimits();
@@ -103,7 +101,7 @@ class WebDashboardPlugin {
                     });
                 }
                 else if (Array.isArray(entries)) {
-                    entries.forEach(ip => this.blacklistedIps.set(ip, Date.now() + 365 * 24 * 3600 * 1000));
+                    entries.forEach((ip) => this.blacklistedIps.set(ip, Date.now() + 365 * 24 * 3600 * 1000));
                 }
                 this.cleanupBlacklist();
                 this.logger.info(`[WebDashboard] 已从文件加载 ${this.blacklistedIps.size} 个登录黑名单 IP。`);
@@ -183,7 +181,8 @@ class WebDashboardPlugin {
                 return { success: false, message: 'Captcha configuration error.' };
             }
             try {
-                const sign_token = crypto_1.default.createHmac('sha256', this.config.geetestKey)
+                const sign_token = crypto_1.default
+                    .createHmac('sha256', this.config.geetestKey)
                     .update(lot_number, 'utf8')
                     .digest('hex');
                 const query = new URLSearchParams({
@@ -197,9 +196,9 @@ class WebDashboardPlugin {
                 const verifyUrl = `http://gcaptcha4.geetest.com/validate?${query}`;
                 const response = await fetch(verifyUrl, {
                     method: 'POST',
-                    redirect: 'error'
+                    redirect: 'error',
                 });
-                const result = await response.json();
+                const result = (await response.json());
                 if (result.result === 'success') {
                     this.logger.info(`[WebDashboard] IP ${ip} 的 Geetest 验证成功`);
                     return { success: true };
@@ -227,14 +226,16 @@ class WebDashboardPlugin {
         this.app.use((req, res, next) => {
             const origin = req.headers['origin'];
             const allowed = this.config.allowedOrigins || [];
-            if (!origin || allowed.length === 0 || allowed.some(a => {
-                try {
-                    return new URL(a).origin === origin;
-                }
-                catch {
-                    return false;
-                }
-            })) {
+            if (!origin ||
+                allowed.length === 0 ||
+                allowed.some((a) => {
+                    try {
+                        return new URL(a).origin === origin;
+                    }
+                    catch {
+                        return false;
+                    }
+                })) {
                 res.header('Access-Control-Allow-Origin', origin || '*');
             }
             res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
@@ -272,14 +273,12 @@ class WebDashboardPlugin {
     verifyUserRole(minRole) {
         return (req, res, next) => {
             let token = undefined;
-            let isNoneBotAuth = false;
             // 检查 X-Admin-Secret 头（nonebot 插件使用）
             const adminSecretHeader = req.headers['x-admin-secret'];
             if (adminSecretHeader) {
                 // 使用环境变量或默认配置中的 adminSecret
                 const adminSecret = process.env.ADMIN_SECRET;
                 if (adminSecret && this.verifyAesCbcToken(adminSecretHeader, adminSecret)) {
-                    isNoneBotAuth = true;
                     // AES-CBC 认证成功，检查是否是管理员
                     // nonebot 插件的用户已经是 SUPERUSER，所以直接放行
                     this.logger.info(`[WebDashboard] NoneBot AES-CBC 认证成功，IP: ${this.getRealIp(req)}`);
@@ -398,7 +397,11 @@ class WebDashboardPlugin {
             if (!session || Date.now() > session.expiresAt) {
                 return res.json({ isAdmin: false, isOwner: false, userId: null });
             }
-            return res.json({ isAdmin: session.isAdmin, isOwner: session.isOwner, userId: session.userId });
+            return res.json({
+                isAdmin: session.isAdmin,
+                isOwner: session.isOwner,
+                userId: session.userId,
+            });
         });
         this.app.get('/check-session', (req, res) => {
             let token = undefined;
@@ -437,7 +440,7 @@ class WebDashboardPlugin {
             res.json({
                 captchaProvider: this.config.captchaProvider,
                 serverName: this.config.serverName,
-                displayIp: this.config.displayIp
+                displayIp: this.config.displayIp,
             });
         });
         // User login API
@@ -453,21 +456,21 @@ class WebDashboardPlugin {
                 const response = await fetch('https://phira.5wyxi.com/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
+                    body: JSON.stringify({ email, password }),
                 });
-                const data = await response.json();
+                const data = (await response.json());
                 if (response.ok && data.token) {
                     res.cookie('access_token', data.token, {
                         httpOnly: true,
                         maxAge: 30 * 24 * 60 * 60 * 1000,
-                        sameSite: 'lax'
+                        sameSite: 'lax',
                     });
                     try {
                         const userResponse = await fetch('https://phira.5wyxi.com/me', {
-                            headers: { 'Authorization': `Bearer ${data.token}` }
+                            headers: { Authorization: `Bearer ${data.token}` },
                         });
                         if (userResponse.ok) {
-                            const userData = await userResponse.json();
+                            const userData = (await userResponse.json());
                             const userId = Number(userData.id);
                             const isAdmin = this.config.adminPhiraId.includes(userId);
                             const isOwner = this.config.ownerPhiraId.includes(userId);
@@ -476,7 +479,7 @@ class WebDashboardPlugin {
                                 username: userData.name,
                                 expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
                                 isAdmin,
-                                isOwner
+                                isOwner,
                             });
                             return res.json({ success: true, user: { ...userData, isAdmin, isOwner } });
                         }
@@ -492,7 +495,7 @@ class WebDashboardPlugin {
                         username: data.name,
                         expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
                         isAdmin,
-                        isOwner
+                        isOwner,
                     });
                     return res.json({ success: true, user: { id: data.id, ...data, isAdmin, isOwner } });
                 }
@@ -506,7 +509,9 @@ class WebDashboardPlugin {
                         this.logToBlacklist(ip, email);
                         this.loginAttempts.delete(ip);
                     }
-                    return res.status(401).json({ success: false, error: data.error || 'Invalid credentials' });
+                    return res
+                        .status(401)
+                        .json({ success: false, error: data.error || 'Invalid credentials' });
                 }
             }
             catch (e) {
@@ -535,7 +540,7 @@ class WebDashboardPlugin {
             }
             try {
                 const response = await fetch('https://phira.5wyxi.com/me', {
-                    headers: { 'Authorization': 'Bearer ' + token }
+                    headers: { Authorization: 'Bearer ' + token },
                 });
                 if (!response.ok) {
                     return res.status(response.status).json({ error: 'Upstream error' });
@@ -562,7 +567,7 @@ class WebDashboardPlugin {
             const session = token ? this.userSessions.get(token) : undefined;
             const isAdmin = session && (session.isAdmin || session.isOwner) && Date.now() <= session.expiresAt;
             if (isAdmin) {
-                const allPlayers = this.protocolHandler.getAllSessions().map(p => ({
+                const allPlayers = this.protocolHandler.getAllSessions().map((p) => ({
                     ...p,
                     isAdmin: this.config.adminPhiraId.includes(p.id),
                     isOwner: this.config.ownerPhiraId.includes(p.id),
@@ -571,16 +576,19 @@ class WebDashboardPlugin {
                 return res.json(allPlayers);
             }
             const allRooms = this.roomManager.listRooms();
-            const publicRoomIds = new Set(allRooms.filter(room => {
+            const publicRoomIds = new Set(allRooms
+                .filter((room) => {
                 if (this.config.enablePubWeb)
                     return room.id.startsWith(this.config.pubPrefix);
                 if (this.config.enablePriWeb)
                     return !room.id.startsWith(this.config.priPrefix);
                 return true;
-            }).map(r => r.id));
-            const publicPlayers = this.protocolHandler.getAllSessions()
-                .filter(p => p.roomId && publicRoomIds.has(p.roomId))
-                .map(p => ({
+            })
+                .map((r) => r.id));
+            const publicPlayers = this.protocolHandler
+                .getAllSessions()
+                .filter((p) => p.roomId && publicRoomIds.has(p.roomId))
+                .map((p) => ({
                 id: p.id,
                 name: p.name,
                 roomId: p.roomId,
@@ -595,7 +603,7 @@ class WebDashboardPlugin {
             if (!roomId || !content) {
                 return res.status(400).json({ error: 'Missing roomId or content' });
             }
-            this.protocolHandler.sendServerMessage(roomId, "【系统】" + content);
+            this.protocolHandler.sendServerMessage(roomId, '【系统】' + content);
             return res.json({ success: true });
         });
         this.app.post('/api/admin/broadcast', this.verifyUserRole('Admin').bind(this), (req, res) => {
@@ -603,14 +611,17 @@ class WebDashboardPlugin {
             if (!content) {
                 return res.status(400).json({ error: 'Missing content' });
             }
-            const targetIds = (target && target.startsWith('#'))
-                ? target.substring(1).split(',').map((id) => id.trim())
+            const targetIds = target && target.startsWith('#')
+                ? target
+                    .substring(1)
+                    .split(',')
+                    .map((id) => id.trim())
                 : null;
             const rooms = this.roomManager.listRooms();
             let sentCount = 0;
-            rooms.forEach(room => {
+            rooms.forEach((room) => {
                 if (!targetIds || targetIds.includes(room.id)) {
-                    this.protocolHandler.sendServerMessage(room.id, "【全服播报】" + content);
+                    this.protocolHandler.sendServerMessage(room.id, '【全服播报】' + content);
                     sentCount++;
                 }
             });
@@ -751,7 +762,7 @@ class WebDashboardPlugin {
         this.app.get('/api/admin/login-blacklist', this.verifyUserRole('Admin').bind(this), (_req, res) => {
             const list = Array.from(this.blacklistedIps.entries()).map(([ip, expiresAt]) => ({
                 ip,
-                expiresAt
+                expiresAt,
             }));
             return res.json({ blacklistedIps: list });
         });
@@ -762,11 +773,15 @@ class WebDashboardPlugin {
             }
             const session = this.userSessions.get(req.cookies['access_token'] || req.header('Authorization')?.substring(7));
             const adminName = session ? `${session.username} (${session.userId})` : 'Unknown Admin';
-            const finalDuration = duration ? Number(duration) : (this.config.loginBlacklistDuration ?? 600);
+            const finalDuration = duration
+                ? Number(duration)
+                : (this.config.loginBlacklistDuration ?? 600);
             const expiresAt = Date.now() + finalDuration * 1000;
             this.blacklistedIps.set(String(ip), expiresAt);
             this.saveBlacklist();
-            const durationStr = finalDuration >= 3600 ? `${(finalDuration / 3600).toFixed(1)}小时` : `${Math.floor(finalDuration / 60)}分钟`;
+            const durationStr = finalDuration >= 3600
+                ? `${(finalDuration / 3600).toFixed(1)}小时`
+                : `${Math.floor(finalDuration / 60)}分钟`;
             this.logger.ban(`[WebDashboard] IP ${ip} 被管理员 ${adminName} 手动加入登录黑名单。时长: ${durationStr}`);
             return res.json({ success: true });
         });
@@ -790,13 +805,13 @@ class WebDashboardPlugin {
             return res.json({
                 uptime: process.uptime(),
                 memory: {
-                    rss: Math.round(used.rss / 1024 / 1024 * 100) / 100,
-                    heapTotal: Math.round(used.heapTotal / 1024 / 1024 * 100) / 100,
-                    heapUsed: Math.round(used.heapUsed / 1024 / 1024 * 100) / 100,
+                    rss: Math.round((used.rss / 1024 / 1024) * 100) / 100,
+                    heapTotal: Math.round((used.heapTotal / 1024 / 1024) * 100) / 100,
+                    heapUsed: Math.round((used.heapUsed / 1024 / 1024) * 100) / 100,
                 },
                 platform: process.platform,
                 nodeVersion: process.version,
-                pid: process.pid
+                pid: process.pid,
             });
         });
         this.app.get('/api/version', (_req, res) => {
@@ -819,8 +834,9 @@ class WebDashboardPlugin {
             if (!isAdmin && Date.now() - this.statusCacheTime < 1000 && this.cachedStatus) {
                 return res.json(this.cachedStatus);
             }
-            const rooms = this.roomManager.listRooms()
-                .filter(room => {
+            const rooms = this.roomManager
+                .listRooms()
+                .filter((room) => {
                 if (isAdmin)
                     return true;
                 if (this.config.enablePubWeb) {
@@ -831,8 +847,8 @@ class WebDashboardPlugin {
                 }
                 return true;
             })
-                .map(room => {
-                const players = Array.from(room.players.values()).map(p => ({
+                .map((room) => {
+                const players = Array.from(room.players.values()).map((p) => ({
                     id: p.user.id,
                     name: p.user.name,
                 }));
@@ -856,27 +872,29 @@ class WebDashboardPlugin {
                 onlinePlayers: this.protocolHandler.getSessionCount(),
                 roomCount: rooms.length,
                 rooms: rooms,
-                federation: this.federationManager ? {
-                    enabled: true,
-                    nodeId: this.federationManager.getNodeId(),
-                    remoteRooms: this.federationManager.getRemoteRooms().map((r) => ({
-                        id: r.id,
-                        name: r.name,
-                        nodeId: r.nodeId,
-                        nodeName: r.nodeName,
-                        playerCount: r.playerCount,
-                        maxPlayers: r.maxPlayers,
-                        state: r.state,
-                        locked: r.locked,
-                        cycle: r.cycle,
-                        players: r.players,
-                    })),
-                    nodes: this.federationManager.getOnlineNodes().map((n) => ({
-                        id: n.id,
-                        serverName: n.serverName,
-                        status: n.status,
-                    })),
-                } : { enabled: false },
+                federation: this.federationManager
+                    ? {
+                        enabled: true,
+                        nodeId: this.federationManager.getNodeId(),
+                        remoteRooms: this.federationManager.getRemoteRooms().map((r) => ({
+                            id: r.id,
+                            name: r.name,
+                            nodeId: r.nodeId,
+                            nodeName: r.nodeName,
+                            playerCount: r.playerCount,
+                            maxPlayers: r.maxPlayers,
+                            state: r.state,
+                            locked: r.locked,
+                            cycle: r.cycle,
+                            players: r.players,
+                        })),
+                        nodes: this.federationManager.getOnlineNodes().map((n) => ({
+                            id: n.id,
+                            serverName: n.serverName,
+                            status: n.status,
+                        })),
+                    }
+                    : { enabled: false },
             };
             if (!isAdmin) {
                 this.cachedStatus = response;
@@ -910,73 +928,6 @@ class WebDashboardPlugin {
             this.logger.error(`[WebDashboard] 提供 HTML 失败 ${htmlPath}: ${e}`);
             res.status(500).send('Internal server error');
         }
-    }
-    setupFederationRoutes() {
-        if (!this.federationManager) {
-            this.logger.debug('[WebDashboard] 联邦管理器未提供，跳过联邦路由注册');
-            return;
-        }
-        const fm = this.federationManager;
-        const authFederation = (req, res, next) => {
-            const secret = req.header('X-Federation-Secret');
-            const expectedSecret = fm.getConfig().secret;
-            if (!secret || !expectedSecret || secret !== expectedSecret) {
-                res.status(403).json({ error: 'Invalid federation secret' });
-                return;
-            }
-            next();
-        };
-        // Federation APIs
-        this.app.post('/api/federation/handshake', authFederation, (req, res) => {
-            const { nodeId, nodeUrl, serverName, instanceId, isReverse } = req.body;
-            if (!nodeId || !nodeUrl) {
-                return res.status(400).json({ error: 'Missing nodeId or nodeUrl' });
-            }
-            this.logger.info(`[WebDashboard] [联邦HTTP] 收到握手请求: 来自 ${serverName} (ID: ${nodeId}, 实例: ${instanceId}, URL: ${nodeUrl}, 反向: ${!!isReverse})`);
-            const result = fm.handleIncomingHandshake({
-                nodeId,
-                nodeUrl,
-                serverName: serverName || 'Unknown',
-                instanceId,
-                isReverse: !!isReverse
-            });
-            this.logger.info(`[WebDashboard] [联邦HTTP] 握手响应已发送给 ${serverName}`);
-            return res.json(result);
-        });
-        this.app.get('/api/federation/health', authFederation, (_req, res) => {
-            return res.json({
-                nodeId: fm.getNodeId(),
-                instanceId: fm.getInstanceId(),
-                serverName: fm.getConfig().serverName,
-                status: 'online',
-                timestamp: Date.now(),
-                peers: fm.getNodes().filter(n => n.status === 'online').map(n => ({
-                    id: n.id,
-                    url: n.url,
-                    instanceId: n.instanceId,
-                    serverName: n.serverName,
-                })),
-            });
-        });
-        this.app.get('/api/federation/peers', authFederation, (_req, res) => {
-            return res.json({
-                peers: fm.getNodes().map(n => ({
-                    id: n.id,
-                    url: n.url,
-                    serverName: n.serverName,
-                    status: n.status,
-                    lastSeen: n.lastSeen,
-                })),
-            });
-        });
-        this.app.get('/api/federation/rooms', authFederation, (_req, res) => {
-            const rooms = fm.getLocalRoomsForFederation();
-            if (rooms.length !== this.lastFederationRoomCount) {
-                this.logger.info(`[WebDashboard] [联邦HTTP] 房间查询: 本地房间数 ${this.lastFederationRoomCount === -1 ? '初始化' : this.lastFederationRoomCount} → ${rooms.length}`);
-                this.lastFederationRoomCount = rooms.length;
-            }
-            return res.json({ rooms });
-        });
     }
     async start() {
         this.logger.mark(`[WebDashboard] 路由与静态资源已挂载到插件宿主`);
@@ -1020,6 +971,6 @@ const pluginModule = {
     async destroy() {
         await instance?.stop();
         instance = undefined;
-    }
+    },
 };
 exports.default = pluginModule;

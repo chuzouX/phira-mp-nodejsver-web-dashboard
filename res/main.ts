@@ -4,16 +4,25 @@ import path from 'path';
 import session from 'express-session';
 import cookieParser from 'cookie-parser';
 import crypto from 'crypto';
-import type { PluginModule, PluginApi, ServerConfig, RoomManager, ProtocolHandler, BanManager, FederationManager, Logger } from 'phira-plugin-api';
+import type {
+  PluginModule,
+  PluginApi,
+  ServerConfig,
+  RoomManager,
+  ProtocolHandler,
+  BanManager,
+  FederationManager,
+  Logger,
+} from 'phira-plugin-api';
 
 // 读取服务端版本号（兼容源码开发和二进制分发）
 const version: string = (() => {
-  try { return require('../../package.json').version; } catch { return 'unknown'; }
+  try {
+    return require('../../package.json').version;
+  } catch {
+    return 'unknown';
+  }
 })();
-
-interface AdminSession extends session.SessionData {
-  isAdmin?: boolean;
-}
 
 interface LoginAttempt {
   count: number;
@@ -47,9 +56,11 @@ class WebDashboardPlugin {
   private readonly rateLimits = new Map<string, { count: number; lastReset: number }>();
   private cachedStatus: any = null;
   private statusCacheTime = 0;
-  private lastFederationRoomCount = -1;
 
-  private userSessions = new Map<string, { userId: number, username: string, expiresAt: number, isAdmin: boolean, isOwner: boolean }>();
+  private userSessions = new Map<
+    string,
+    { userId: number; username: string; expiresAt: number; isAdmin: boolean; isOwner: boolean }
+  >();
 
   constructor(
     private readonly config: ServerConfig,
@@ -72,22 +83,24 @@ class WebDashboardPlugin {
       secret: this.config.sessionSecret ?? 'a-very-insecure-secret-change-it',
       resave: false,
       saveUninitialized: true,
-      cookie: { 
+      cookie: {
         secure: process.env.NODE_ENV === 'production',
         httpOnly: true,
         sameSite: 'lax',
-        maxAge: 24 * 60 * 60 * 1000
-      }
+        maxAge: 24 * 60 * 60 * 1000,
+      },
     });
 
     this.setupMiddleware();
     this.setupRoutes();
-    this.setupFederationRoutes();
     this.loadBlacklist();
-    
-    this.cleanupInterval = setInterval(() => {
-      this.cleanupLoginAttemptsAndRateLimits();
-    }, 60 * 60 * 1000);
+
+    this.cleanupInterval = setInterval(
+      () => {
+        this.cleanupLoginAttemptsAndRateLimits();
+      },
+      60 * 60 * 1000,
+    );
 
     logger.info('[WebDashboard] 插件已初始化');
   }
@@ -106,7 +119,11 @@ class WebDashboardPlugin {
     }
   }
 
-  private rateLimitMiddleware(req: express.Request, res: express.Response, next: express.NextFunction): void {
+  private rateLimitMiddleware(
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction,
+  ): void {
     const ip = this.getRealIp(req);
     const now = Date.now();
     const limit = this.rateLimits.get(ip) || { count: 0, lastReset: now };
@@ -137,10 +154,12 @@ class WebDashboardPlugin {
             this.blacklistedIps.set(ip, Number(expiresAt));
           });
         } else if (Array.isArray(entries)) {
-          entries.forEach(ip => this.blacklistedIps.set(ip, Date.now() + 365 * 24 * 3600 * 1000));
+          entries.forEach((ip) => this.blacklistedIps.set(ip, Date.now() + 365 * 24 * 3600 * 1000));
         }
         this.cleanupBlacklist();
-        this.logger.info(`[WebDashboard] 已从文件加载 ${this.blacklistedIps.size} 个登录黑名单 IP。`);
+        this.logger.info(
+          `[WebDashboard] 已从文件加载 ${this.blacklistedIps.size} 个登录黑名单 IP。`,
+        );
       } catch (e) {
         this.logger.error(`[WebDashboard] 加载登录黑名单文件失败: ${e}`);
       }
@@ -187,7 +206,7 @@ class WebDashboardPlugin {
   private isBlacklisted(ip: string): boolean {
     const expiresAt = this.blacklistedIps.get(ip);
     if (!expiresAt) return false;
-    
+
     if (expiresAt < Date.now()) {
       this.blacklistedIps.delete(ip);
       this.saveBlacklist();
@@ -201,13 +220,19 @@ class WebDashboardPlugin {
     const expiresAt = Date.now() + duration * 1000;
     this.blacklistedIps.set(ip, expiresAt);
     this.saveBlacklist();
-    const durationStr = duration >= 3600 ? `${(duration / 3600).toFixed(1)}小时` : `${Math.floor(duration / 60)}分钟`;
-    this.logger.ban(`[WebDashboard] IP ${ip} 因多次登录失败（尝试用户名: ${username}）被自动加入登录黑名单。时长: ${durationStr}`);
+    const durationStr =
+      duration >= 3600 ? `${(duration / 3600).toFixed(1)}小时` : `${Math.floor(duration / 60)}分钟`;
+    this.logger.ban(
+      `[WebDashboard] IP ${ip} 因多次登录失败（尝试用户名: ${username}）被自动加入登录黑名单。时长: ${durationStr}`,
+    );
   }
 
-  private async verifyCaptcha(req: express.Request, ip: string): Promise<{ success: boolean; message?: string }> {
+  private async verifyCaptcha(
+    req: express.Request,
+    ip: string,
+  ): Promise<{ success: boolean; message?: string }> {
     const provider = this.config.captchaProvider;
-    
+
     if (provider === 'none') {
       return { success: true };
     }
@@ -224,7 +249,8 @@ class WebDashboardPlugin {
       }
 
       try {
-        const sign_token = crypto.createHmac('sha256', this.config.geetestKey)
+        const sign_token = crypto
+          .createHmac('sha256', this.config.geetestKey)
           .update(lot_number, 'utf8')
           .digest('hex');
 
@@ -238,11 +264,11 @@ class WebDashboardPlugin {
         }).toString();
 
         const verifyUrl = `http://gcaptcha4.geetest.com/validate?${query}`;
-        const response = await fetch(verifyUrl, { 
+        const response = await fetch(verifyUrl, {
           method: 'POST',
-          redirect: 'error'
+          redirect: 'error',
         });
-        const result = await response.json() as any;
+        const result = (await response.json()) as any;
 
         if (result.result === 'success') {
           this.logger.info(`[WebDashboard] IP ${ip} 的 Geetest 验证成功`);
@@ -266,7 +292,9 @@ class WebDashboardPlugin {
     this.app.use(cookieParser());
 
     if (this.config.sessionSecret === 'a-very-insecure-secret-change-it') {
-      this.logger.warn('[WebDashboard] 安全警告：正在使用默认的 Session Secret。请在 config/web-dashboard/config.yaml 中设置 sessionSecret。');
+      this.logger.warn(
+        '[WebDashboard] 安全警告：正在使用默认的 Session Secret。请在 config/web-dashboard/config.yaml 中设置 sessionSecret。',
+      );
     }
 
     this.app.use(this.sessionParser);
@@ -274,12 +302,23 @@ class WebDashboardPlugin {
     this.app.use((req, res, next) => {
       const origin = req.headers['origin'];
       const allowed = this.config.allowedOrigins || [];
-      if (!origin || allowed.length === 0 || allowed.some(a => {
-        try { return new URL(a).origin === origin; } catch { return false; }
-      })) {
+      if (
+        !origin ||
+        allowed.length === 0 ||
+        allowed.some((a) => {
+          try {
+            return new URL(a).origin === origin;
+          } catch {
+            return false;
+          }
+        })
+      ) {
         res.header('Access-Control-Allow-Origin', origin || '*');
       }
-      res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+      res.header(
+        'Access-Control-Allow-Headers',
+        'Origin, X-Requested-With, Content-Type, Accept, Authorization',
+      );
       res.header('Access-Control-Allow-Credentials', 'true');
       next();
     });
@@ -319,7 +358,6 @@ class WebDashboardPlugin {
   private verifyUserRole(minRole: 'Admin' | 'Owner'): express.RequestHandler {
     return (req: express.Request, res: express.Response, next: express.NextFunction) => {
       let token = undefined;
-      let isNoneBotAuth = false;
 
       // 检查 X-Admin-Secret 头（nonebot 插件使用）
       const adminSecretHeader = req.headers['x-admin-secret'] as string;
@@ -328,7 +366,6 @@ class WebDashboardPlugin {
         const adminSecret = process.env.ADMIN_SECRET;
 
         if (adminSecret && this.verifyAesCbcToken(adminSecretHeader, adminSecret)) {
-          isNoneBotAuth = true;
           // AES-CBC 认证成功，检查是否是管理员
           // nonebot 插件的用户已经是 SUPERUSER，所以直接放行
           this.logger.info(`[WebDashboard] NoneBot AES-CBC 认证成功，IP: ${this.getRealIp(req)}`);
@@ -341,7 +378,7 @@ class WebDashboardPlugin {
       if (req.cookies && req.cookies['access_token']) {
         token = req.cookies['access_token'];
       }
-      
+
       if (!token) {
         const authHeader = req.headers['authorization'];
         if (authHeader && authHeader.startsWith('Bearer ')) {
@@ -362,13 +399,17 @@ class WebDashboardPlugin {
       }
 
       if (minRole === 'Owner' && !session.isOwner) {
-        this.logger.warn(`[WebDashboard] Owner access denied for user ${session.userId} (${session.username})`);
+        this.logger.warn(
+          `[WebDashboard] Owner access denied for user ${session.userId} (${session.username})`,
+        );
         res.status(403).json({ error: 'Forbidden: Owner access required' });
         return;
       }
 
       if (minRole === 'Admin' && !session.isAdmin && !session.isOwner) {
-        this.logger.warn(`[WebDashboard] Admin access denied for user ${session.userId} (${session.username})`);
+        this.logger.warn(
+          `[WebDashboard] Admin access denied for user ${session.userId} (${session.username})`,
+        );
         res.status(403).json({ error: 'Forbidden: Admin access required' });
         return;
       }
@@ -391,7 +432,7 @@ class WebDashboardPlugin {
     });
 
     const publicPath = path.join(__dirname, 'public');
-    
+
     // Custom HTML routes WITH config injection (MUST be before express.static)
     this.app.get(['/admin', '/admin.html'], (_req, res) => {
       return res.redirect('/login');
@@ -453,22 +494,26 @@ class WebDashboardPlugin {
       if (req.cookies && req.cookies['access_token']) {
         token = req.cookies['access_token'];
       }
-      
+
       if (!token) {
         const authHeader = req.headers['authorization'];
         if (authHeader && authHeader.startsWith('Bearer ')) {
           token = authHeader.substring(7);
         }
       }
-      
+
       if (!token) return res.json({ isAdmin: false, isOwner: false, userId: null });
-      
+
       const session = this.userSessions.get(token);
       if (!session || Date.now() > session.expiresAt) {
         return res.json({ isAdmin: false, isOwner: false, userId: null });
       }
-      
-      return res.json({ isAdmin: session.isAdmin, isOwner: session.isOwner, userId: session.userId });
+
+      return res.json({
+        isAdmin: session.isAdmin,
+        isOwner: session.isOwner,
+        userId: session.userId,
+      });
     });
 
     this.app.get('/check-session', (req, res) => {
@@ -514,14 +559,15 @@ class WebDashboardPlugin {
       res.json({
         captchaProvider: this.config.captchaProvider,
         serverName: this.config.serverName,
-        displayIp: this.config.displayIp
+        displayIp: this.config.displayIp,
       });
     });
 
     // User login API
     this.app.post('/api/user-login', this.rateLimitMiddleware.bind(this), async (req, res) => {
       const { email, password } = req.body;
-      if (!email || !password) return res.status(400).json({ success: false, error: 'Missing email or password' });
+      if (!email || !password)
+        return res.status(400).json({ success: false, error: 'Missing email or password' });
 
       const ip = this.getRealIp(req);
       if (this.isBlacklisted(ip)) {
@@ -532,24 +578,24 @@ class WebDashboardPlugin {
         const response = await fetch('https://phira.5wyxi.com/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
+          body: JSON.stringify({ email, password }),
         });
-        
-        const data = await response.json() as any;
-        
+
+        const data = (await response.json()) as any;
+
         if (response.ok && data.token) {
           res.cookie('access_token', data.token, {
             httpOnly: true,
             maxAge: 30 * 24 * 60 * 60 * 1000,
-            sameSite: 'lax'
+            sameSite: 'lax',
           });
-          
+
           try {
             const userResponse = await fetch('https://phira.5wyxi.com/me', {
-              headers: { 'Authorization': `Bearer ${data.token}` }
+              headers: { Authorization: `Bearer ${data.token}` },
             });
             if (userResponse.ok) {
-              const userData = await userResponse.json() as any;
+              const userData = (await userResponse.json()) as any;
               const userId = Number(userData.id);
               const isAdmin = this.config.adminPhiraId.includes(userId);
               const isOwner = this.config.ownerPhiraId.includes(userId);
@@ -559,9 +605,9 @@ class WebDashboardPlugin {
                 username: userData.name,
                 expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
                 isAdmin,
-                isOwner
+                isOwner,
               });
-              
+
               return res.json({ success: true, user: { ...userData, isAdmin, isOwner } });
             }
           } catch (e) {
@@ -571,13 +617,13 @@ class WebDashboardPlugin {
           const userId = Number(data.id);
           const isAdmin = this.config.adminPhiraId.includes(userId);
           const isOwner = this.config.ownerPhiraId.includes(userId);
-          
+
           this.userSessions.set(data.token, {
             userId,
             username: data.name,
             expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
             isAdmin,
-            isOwner
+            isOwner,
           });
 
           return res.json({ success: true, user: { id: data.id, ...data, isAdmin, isOwner } });
@@ -591,7 +637,9 @@ class WebDashboardPlugin {
             this.logToBlacklist(ip, email);
             this.loginAttempts.delete(ip);
           }
-          return res.status(401).json({ success: false, error: data.error || 'Invalid credentials' });
+          return res
+            .status(401)
+            .json({ success: false, error: data.error || 'Invalid credentials' });
         }
       } catch (e) {
         this.logger.error(`[WebDashboard] Phira login proxy error: ${e}`);
@@ -620,7 +668,7 @@ class WebDashboardPlugin {
       }
       try {
         const response = await fetch('https://phira.5wyxi.com/me', {
-          headers: { 'Authorization': 'Bearer ' + token }
+          headers: { Authorization: 'Bearer ' + token },
         });
         if (!response.ok) {
           return res.status(response.status).json({ error: 'Upstream error' });
@@ -635,15 +683,20 @@ class WebDashboardPlugin {
     // Players API (public: only players in public rooms; admin: all players)
     this.app.get('/api/all-players', this.rateLimitMiddleware.bind(this), (req, res) => {
       let token: string | undefined = undefined;
-      if (req.cookies && req.cookies['access_token']) { token = req.cookies['access_token']; }
+      if (req.cookies && req.cookies['access_token']) {
+        token = req.cookies['access_token'];
+      }
       if (!token) {
         const authHeader = req.headers['authorization'];
-        if (authHeader && authHeader.startsWith('Bearer ')) { token = authHeader.substring(7); }
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+          token = authHeader.substring(7);
+        }
       }
       const session = token ? this.userSessions.get(token) : undefined;
-      const isAdmin = session && (session.isAdmin || session.isOwner) && Date.now() <= session.expiresAt;
+      const isAdmin =
+        session && (session.isAdmin || session.isOwner) && Date.now() <= session.expiresAt;
       if (isAdmin) {
-        const allPlayers = this.protocolHandler.getAllSessions().map(p => ({
+        const allPlayers = this.protocolHandler.getAllSessions().map((p) => ({
           ...p,
           isAdmin: this.config.adminPhiraId.includes(p.id),
           isOwner: this.config.ownerPhiraId.includes(p.id),
@@ -652,14 +705,19 @@ class WebDashboardPlugin {
         return res.json(allPlayers);
       }
       const allRooms = this.roomManager.listRooms();
-      const publicRoomIds = new Set(allRooms.filter(room => {
-        if (this.config.enablePubWeb) return room.id.startsWith(this.config.pubPrefix!);
-        if (this.config.enablePriWeb) return !room.id.startsWith(this.config.priPrefix!);
-        return true;
-      }).map(r => r.id));
-      const publicPlayers = this.protocolHandler.getAllSessions()
-        .filter(p => p.roomId && publicRoomIds.has(p.roomId))
-        .map(p => ({
+      const publicRoomIds = new Set(
+        allRooms
+          .filter((room) => {
+            if (this.config.enablePubWeb) return room.id.startsWith(this.config.pubPrefix!);
+            if (this.config.enablePriWeb) return !room.id.startsWith(this.config.priPrefix!);
+            return true;
+          })
+          .map((r) => r.id),
+      );
+      const publicPlayers = this.protocolHandler
+        .getAllSessions()
+        .filter((p) => p.roomId && publicRoomIds.has(p.roomId))
+        .map((p) => ({
           id: p.id,
           name: p.name,
           roomId: p.roomId,
@@ -670,34 +728,42 @@ class WebDashboardPlugin {
     });
 
     this.app.use('/api/admin', this.rateLimitMiddleware.bind(this));
-    this.app.post('/api/admin/server-message', this.verifyUserRole('Admin').bind(this), (req, res) => {
-      const { roomId, content } = req.body;
-      if (!roomId || !content) {
-        return res.status(400).json({ error: 'Missing roomId or content' });
-      }
-      this.protocolHandler.sendServerMessage(roomId, "【系统】"+content);
-      return res.json({ success: true });
-    });
+    this.app.post(
+      '/api/admin/server-message',
+      this.verifyUserRole('Admin').bind(this),
+      (req, res) => {
+        const { roomId, content } = req.body;
+        if (!roomId || !content) {
+          return res.status(400).json({ error: 'Missing roomId or content' });
+        }
+        this.protocolHandler.sendServerMessage(roomId, '【系统】' + content);
+        return res.json({ success: true });
+      },
+    );
 
     this.app.post('/api/admin/broadcast', this.verifyUserRole('Admin').bind(this), (req, res) => {
       const { content, target } = req.body;
       if (!content) {
         return res.status(400).json({ error: 'Missing content' });
       }
-      
-      const targetIds = (target && target.startsWith('#')) 
-        ? target.substring(1).split(',').map((id: string) => id.trim()) 
-        : null;
+
+      const targetIds =
+        target && target.startsWith('#')
+          ? target
+              .substring(1)
+              .split(',')
+              .map((id: string) => id.trim())
+          : null;
 
       const rooms = this.roomManager.listRooms();
       let sentCount = 0;
-      rooms.forEach(room => {
+      rooms.forEach((room) => {
         if (!targetIds || targetIds.includes(room.id)) {
-          this.protocolHandler.sendServerMessage(room.id, "【全服播报】" + content);
+          this.protocolHandler.sendServerMessage(room.id, '【全服播报】' + content);
           sentCount++;
         }
       });
-      
+
       return res.json({ success: true, roomCount: sentCount });
     });
 
@@ -725,14 +791,20 @@ class WebDashboardPlugin {
       return res.json({ success: ok });
     });
 
-    this.app.post('/api/admin/set-max-players', this.verifyUserRole('Admin').bind(this), (req, res) => {
-      const { roomId, maxPlayers } = req.body;
-      if (!roomId || maxPlayers == null) return res.status(400).json({ error: 'Missing roomId or maxPlayers' });
-      const n = Number(maxPlayers);
-      if (!Number.isFinite(n) || n < 1) return res.status(400).json({ error: 'maxPlayers must be >= 1' });
-      const ok = this.protocolHandler.setRoomMaxPlayers(roomId, n);
-      return res.json({ success: ok });
-    });
+    this.app.post(
+      '/api/admin/set-max-players',
+      this.verifyUserRole('Admin').bind(this),
+      (req, res) => {
+        const { roomId, maxPlayers } = req.body;
+        if (!roomId || maxPlayers == null)
+          return res.status(400).json({ error: 'Missing roomId or maxPlayers' });
+        const n = Number(maxPlayers);
+        if (!Number.isFinite(n) || n < 1)
+          return res.status(400).json({ error: 'maxPlayers must be >= 1' });
+        const ok = this.protocolHandler.setRoomMaxPlayers(roomId, n);
+        return res.json({ success: ok });
+      },
+    );
 
     this.app.post('/api/admin/close-room', this.verifyUserRole('Admin').bind(this), (req, res) => {
       const { roomId } = req.body;
@@ -750,39 +822,55 @@ class WebDashboardPlugin {
       return res.json({ success: true });
     });
 
-    this.app.get('/api/admin/room-blacklist', this.verifyUserRole('Admin').bind(this), (req, res) => {
-      const roomId = req.query.roomId as string;
-      if (!roomId) return res.status(400).json({ error: 'Missing roomId' });
-      const room = this.roomManager.getRoom(roomId);
-      if (!room) return res.status(404).json({ error: 'Room not found' });
-      return res.json({ blacklist: room.blacklist || [] });
-    });
+    this.app.get(
+      '/api/admin/room-blacklist',
+      this.verifyUserRole('Admin').bind(this),
+      (req, res) => {
+        const roomId = req.query.roomId as string;
+        if (!roomId) return res.status(400).json({ error: 'Missing roomId' });
+        const room = this.roomManager.getRoom(roomId);
+        if (!room) return res.status(404).json({ error: 'Room not found' });
+        return res.json({ blacklist: room.blacklist || [] });
+      },
+    );
 
-    this.app.post('/api/admin/set-room-blacklist', this.verifyUserRole('Admin').bind(this), (req, res) => {
-      const { roomId, userIds } = req.body;
-      if (!roomId) return res.status(400).json({ error: 'Missing roomId' });
-      const room = this.roomManager.getRoom(roomId);
-      if (!room) return res.status(404).json({ error: 'Room not found' });
-      room.blacklist = Array.isArray(userIds) ? userIds : [];
-      return res.json({ success: true });
-    });
+    this.app.post(
+      '/api/admin/set-room-blacklist',
+      this.verifyUserRole('Admin').bind(this),
+      (req, res) => {
+        const { roomId, userIds } = req.body;
+        if (!roomId) return res.status(400).json({ error: 'Missing roomId' });
+        const room = this.roomManager.getRoom(roomId);
+        if (!room) return res.status(404).json({ error: 'Room not found' });
+        room.blacklist = Array.isArray(userIds) ? userIds : [];
+        return res.json({ success: true });
+      },
+    );
 
-    this.app.get('/api/admin/room-whitelist', this.verifyUserRole('Admin').bind(this), (req, res) => {
-      const roomId = req.query.roomId as string;
-      if (!roomId) return res.status(400).json({ error: 'Missing roomId' });
-      const room = this.roomManager.getRoom(roomId);
-      if (!room) return res.status(404).json({ error: 'Room not found' });
-      return res.json({ whitelist: room.whitelist || [] });
-    });
+    this.app.get(
+      '/api/admin/room-whitelist',
+      this.verifyUserRole('Admin').bind(this),
+      (req, res) => {
+        const roomId = req.query.roomId as string;
+        if (!roomId) return res.status(400).json({ error: 'Missing roomId' });
+        const room = this.roomManager.getRoom(roomId);
+        if (!room) return res.status(404).json({ error: 'Room not found' });
+        return res.json({ whitelist: room.whitelist || [] });
+      },
+    );
 
-    this.app.post('/api/admin/set-room-whitelist', this.verifyUserRole('Admin').bind(this), (req, res) => {
-      const { roomId, userIds } = req.body;
-      if (!roomId) return res.status(400).json({ error: 'Missing roomId' });
-      const room = this.roomManager.getRoom(roomId);
-      if (!room) return res.status(404).json({ error: 'Room not found' });
-      room.whitelist = Array.isArray(userIds) ? userIds : [];
-      return res.json({ success: true });
-    });
+    this.app.post(
+      '/api/admin/set-room-whitelist',
+      this.verifyUserRole('Admin').bind(this),
+      (req, res) => {
+        const { roomId, userIds } = req.body;
+        if (!roomId) return res.status(400).json({ error: 'Missing roomId' });
+        const room = this.roomManager.getRoom(roomId);
+        if (!room) return res.status(404).json({ error: 'Room not found' });
+        room.whitelist = Array.isArray(userIds) ? userIds : [];
+        return res.json({ success: true });
+      },
+    );
 
     // Ban Management APIs
     this.app.get('/api/admin/bans', this.verifyUserRole('Admin').bind(this), (_req, res) => {
@@ -791,14 +879,17 @@ class WebDashboardPlugin {
 
     this.app.post('/api/admin/ban', this.verifyUserRole('Admin').bind(this), (req, res) => {
       const { type, target, duration, reason } = req.body;
-      
+
       if (!type || !target) {
         return res.status(400).json({ error: 'Missing type or target' });
       }
 
-      const session = this.userSessions.get(req.cookies['access_token'] || req.header('Authorization')?.substring(7));
+      const session = this.userSessions.get(
+        req.cookies['access_token'] || req.header('Authorization')?.substring(7),
+      );
       const adminName = session ? `${session.username} (${session.userId})` : 'Unknown Admin';
-      const finalReason = reason && String(reason).trim() !== '' ? String(reason) : 'No reason provided';
+      const finalReason =
+        reason && String(reason).trim() !== '' ? String(reason) : 'No reason provided';
 
       if (type === 'id') {
         const userId = Number(target);
@@ -821,7 +912,9 @@ class WebDashboardPlugin {
         return res.status(400).json({ error: 'Missing type or target' });
       }
 
-      const session = this.userSessions.get(req.cookies['access_token'] || req.header('Authorization')?.substring(7));
+      const session = this.userSessions.get(
+        req.cookies['access_token'] || req.header('Authorization')?.substring(7),
+      );
       const adminName = session ? `${session.username} (${session.userId})` : 'Unknown Admin';
       let success = false;
       if (type === 'id') {
@@ -834,46 +927,69 @@ class WebDashboardPlugin {
     });
 
     // Login Blacklist APIs
-    this.app.get('/api/admin/login-blacklist', this.verifyUserRole('Admin').bind(this), (_req, res) => {
-      const list = Array.from(this.blacklistedIps.entries()).map(([ip, expiresAt]) => ({
-        ip,
-        expiresAt
-      }));
-      return res.json({ blacklistedIps: list });
-    });
+    this.app.get(
+      '/api/admin/login-blacklist',
+      this.verifyUserRole('Admin').bind(this),
+      (_req, res) => {
+        const list = Array.from(this.blacklistedIps.entries()).map(([ip, expiresAt]) => ({
+          ip,
+          expiresAt,
+        }));
+        return res.json({ blacklistedIps: list });
+      },
+    );
 
-    this.app.post('/api/admin/blacklist-ip', this.verifyUserRole('Admin').bind(this), (req, res) => {
-      const { ip, duration } = req.body;
-      if (!ip) {
-        return res.status(400).json({ error: 'Missing ip' });
-      }
-      const session = this.userSessions.get(req.cookies['access_token'] || req.header('Authorization')?.substring(7));
-      const adminName = session ? `${session.username} (${session.userId})` : 'Unknown Admin';
-      const finalDuration = duration ? Number(duration) : (this.config.loginBlacklistDuration ?? 600);
-      const expiresAt = Date.now() + finalDuration * 1000;
-      
-      this.blacklistedIps.set(String(ip), expiresAt);
-      this.saveBlacklist();
-      
-      const durationStr = finalDuration >= 3600 ? `${(finalDuration / 3600).toFixed(1)}小时` : `${Math.floor(finalDuration / 60)}分钟`;
-      this.logger.ban(`[WebDashboard] IP ${ip} 被管理员 ${adminName} 手动加入登录黑名单。时长: ${durationStr}`);
-      return res.json({ success: true });
-    });
+    this.app.post(
+      '/api/admin/blacklist-ip',
+      this.verifyUserRole('Admin').bind(this),
+      (req, res) => {
+        const { ip, duration } = req.body;
+        if (!ip) {
+          return res.status(400).json({ error: 'Missing ip' });
+        }
+        const session = this.userSessions.get(
+          req.cookies['access_token'] || req.header('Authorization')?.substring(7),
+        );
+        const adminName = session ? `${session.username} (${session.userId})` : 'Unknown Admin';
+        const finalDuration = duration
+          ? Number(duration)
+          : (this.config.loginBlacklistDuration ?? 600);
+        const expiresAt = Date.now() + finalDuration * 1000;
 
-    this.app.post('/api/admin/unblacklist-ip', this.verifyUserRole('Admin').bind(this), (req, res) => {
-      const { ip } = req.body;
-      if (!ip) {
-        return res.status(400).json({ error: 'Missing ip' });
-      }
-      const session = this.userSessions.get(req.cookies['access_token'] || req.header('Authorization')?.substring(7));
-      const adminName = session ? `${session.username} (${session.userId})` : 'Unknown Admin';
-      const success = this.blacklistedIps.delete(String(ip));
-      if (success) {
+        this.blacklistedIps.set(String(ip), expiresAt);
         this.saveBlacklist();
-        this.logger.ban(`[WebDashboard] IP ${ip} 被管理员 ${adminName} 从登录黑名单中移除。`);
-      }
-      return res.json({ success });
-    });
+
+        const durationStr =
+          finalDuration >= 3600
+            ? `${(finalDuration / 3600).toFixed(1)}小时`
+            : `${Math.floor(finalDuration / 60)}分钟`;
+        this.logger.ban(
+          `[WebDashboard] IP ${ip} 被管理员 ${adminName} 手动加入登录黑名单。时长: ${durationStr}`,
+        );
+        return res.json({ success: true });
+      },
+    );
+
+    this.app.post(
+      '/api/admin/unblacklist-ip',
+      this.verifyUserRole('Admin').bind(this),
+      (req, res) => {
+        const { ip } = req.body;
+        if (!ip) {
+          return res.status(400).json({ error: 'Missing ip' });
+        }
+        const session = this.userSessions.get(
+          req.cookies['access_token'] || req.header('Authorization')?.substring(7),
+        );
+        const adminName = session ? `${session.username} (${session.userId})` : 'Unknown Admin';
+        const success = this.blacklistedIps.delete(String(ip));
+        if (success) {
+          this.saveBlacklist();
+          this.logger.ban(`[WebDashboard] IP ${ip} 被管理员 ${adminName} 从登录黑名单中移除。`);
+        }
+        return res.json({ success });
+      },
+    );
 
     // Owner Exclusive APIs
     this.app.get('/api/owner/system-info', this.verifyUserRole('Owner').bind(this), (_req, res) => {
@@ -881,13 +997,13 @@ class WebDashboardPlugin {
       return res.json({
         uptime: process.uptime(),
         memory: {
-          rss: Math.round(used.rss / 1024 / 1024 * 100) / 100,
-          heapTotal: Math.round(used.heapTotal / 1024 / 1024 * 100) / 100,
-          heapUsed: Math.round(used.heapUsed / 1024 / 1024 * 100) / 100,
+          rss: Math.round((used.rss / 1024 / 1024) * 100) / 100,
+          heapTotal: Math.round((used.heapTotal / 1024 / 1024) * 100) / 100,
+          heapUsed: Math.round((used.heapUsed / 1024 / 1024) * 100) / 100,
         },
         platform: process.platform,
         nodeVersion: process.version,
-        pid: process.pid
+        pid: process.pid,
       });
     });
 
@@ -901,7 +1017,7 @@ class WebDashboardPlugin {
       if (req.cookies && req.cookies['access_token']) {
         token = req.cookies['access_token'];
       }
-      
+
       if (!token) {
         const authHeader = req.headers['authorization'];
         if (authHeader && authHeader.startsWith('Bearer ')) {
@@ -915,8 +1031,9 @@ class WebDashboardPlugin {
         return res.json(this.cachedStatus);
       }
 
-      const rooms = this.roomManager.listRooms()
-        .filter(room => {
+      const rooms = this.roomManager
+        .listRooms()
+        .filter((room) => {
           if (isAdmin) return true;
           if (this.config.enablePubWeb) {
             return room.id.startsWith(this.config.pubPrefix);
@@ -926,8 +1043,8 @@ class WebDashboardPlugin {
           }
           return true;
         })
-        .map(room => {
-          const players = Array.from(room.players.values()).map(p => ({
+        .map((room) => {
+          const players = Array.from(room.players.values()).map((p) => ({
             id: p.user.id,
             name: p.user.name,
           }));
@@ -953,27 +1070,29 @@ class WebDashboardPlugin {
         onlinePlayers: this.protocolHandler.getSessionCount(),
         roomCount: rooms.length,
         rooms: rooms,
-        federation: this.federationManager ? {
-          enabled: true,
-          nodeId: this.federationManager.getNodeId(),
-          remoteRooms: this.federationManager.getRemoteRooms().map((r: any) => ({
-            id: r.id,
-            name: r.name,
-            nodeId: r.nodeId,
-            nodeName: r.nodeName,
-            playerCount: r.playerCount,
-            maxPlayers: r.maxPlayers,
-            state: r.state,
-            locked: r.locked,
-            cycle: r.cycle,
-            players: r.players,
-          })),
-          nodes: this.federationManager.getOnlineNodes().map((n: any) => ({
-            id: n.id,
-            serverName: n.serverName,
-            status: n.status,
-          })),
-        } : { enabled: false },
+        federation: this.federationManager
+          ? {
+              enabled: true,
+              nodeId: this.federationManager.getNodeId(),
+              remoteRooms: this.federationManager.getRemoteRooms().map((r: any) => ({
+                id: r.id,
+                name: r.name,
+                nodeId: r.nodeId,
+                nodeName: r.nodeName,
+                playerCount: r.playerCount,
+                maxPlayers: r.maxPlayers,
+                state: r.state,
+                locked: r.locked,
+                cycle: r.cycle,
+                players: r.players,
+              })),
+              nodes: this.federationManager.getOnlineNodes().map((n: any) => ({
+                id: n.id,
+                serverName: n.serverName,
+                status: n.status,
+              })),
+            }
+          : { enabled: false },
       };
 
       if (!isAdmin) {
@@ -993,7 +1112,7 @@ class WebDashboardPlugin {
       }
 
       let html = fs.readFileSync(htmlPath, 'utf8');
-      
+
       const serverConfig = JSON.stringify({
         serverName: this.config.serverName,
         displayIp: this.config.displayIp,
@@ -1001,11 +1120,14 @@ class WebDashboardPlugin {
         geetestId: this.config.geetestId || '',
       });
 
-      html = html.replace('</head>', `
+      html = html.replace(
+        '</head>',
+        `
     <script>
       window.SERVER_CONFIG = ${serverConfig};
     </script>
-  </head>`);
+  </head>`,
+      );
 
       res.setHeader('Content-Type', 'text/html');
       res.send(html);
@@ -1013,81 +1135,6 @@ class WebDashboardPlugin {
       this.logger.error(`[WebDashboard] 提供 HTML 失败 ${htmlPath}: ${e}`);
       res.status(500).send('Internal server error');
     }
-  }
-
-  private setupFederationRoutes(): void {
-    if (!this.federationManager) {
-      this.logger.debug('[WebDashboard] 联邦管理器未提供，跳过联邦路由注册');
-      return;
-    }
-
-    const fm = this.federationManager;
-
-    const authFederation = (req: express.Request, res: express.Response, next: express.NextFunction): void => {
-      const secret = req.header('X-Federation-Secret');
-      const expectedSecret = fm.getConfig().secret;
-      if (!secret || !expectedSecret || secret !== expectedSecret) {
-        res.status(403).json({ error: 'Invalid federation secret' });
-        return;
-      }
-      next();
-    };
-
-    // Federation APIs
-    this.app.post('/api/federation/handshake', authFederation, (req, res) => {
-      const { nodeId, nodeUrl, serverName, instanceId, isReverse } = req.body;
-      if (!nodeId || !nodeUrl) {
-        return res.status(400).json({ error: 'Missing nodeId or nodeUrl' });
-      }
-
-      this.logger.info(`[WebDashboard] [联邦HTTP] 收到握手请求: 来自 ${serverName} (ID: ${nodeId}, 实例: ${instanceId}, URL: ${nodeUrl}, 反向: ${!!isReverse})`);
-      const result = fm.handleIncomingHandshake({ 
-        nodeId, 
-        nodeUrl, 
-        serverName: serverName || 'Unknown', 
-        instanceId,
-        isReverse: !!isReverse 
-      });
-      this.logger.info(`[WebDashboard] [联邦HTTP] 握手响应已发送给 ${serverName}`);
-      return res.json(result);
-    });
-
-    this.app.get('/api/federation/health', authFederation, (_req, res) => {
-      return res.json({
-        nodeId: fm.getNodeId(),
-        instanceId: fm.getInstanceId(),
-        serverName: fm.getConfig().serverName,
-        status: 'online',
-        timestamp: Date.now(),
-        peers: fm.getNodes().filter(n => n.status === 'online').map(n => ({
-          id: n.id,
-          url: n.url,
-          instanceId: n.instanceId,
-          serverName: n.serverName,
-        })),
-      });
-    });
-
-    this.app.get('/api/federation/peers', authFederation, (_req, res) => {
-      return res.json({
-        peers: fm.getNodes().map(n => ({
-          id: n.id,
-          url: n.url,
-          serverName: n.serverName,
-          status: n.status,
-          lastSeen: n.lastSeen,
-        })),
-      });
-    });
-
-    this.app.get('/api/federation/rooms', authFederation, (_req, res) => {
-      const rooms = fm.getLocalRoomsForFederation();
-      if (rooms.length !== this.lastFederationRoomCount) {
-        this.logger.info(`[WebDashboard] [联邦HTTP] 房间查询: 本地房间数 ${this.lastFederationRoomCount === -1 ? '初始化' : this.lastFederationRoomCount} → ${rooms.length}`);
-        this.lastFederationRoomCount = rooms.length;
-      }
-      return res.json({ rooms });
-    });
   }
 
   public async start(): Promise<void> {
@@ -1106,7 +1153,7 @@ let instance: WebDashboardPlugin | undefined;
 
 const pluginModule: PluginModule = {
   name: 'web-dashboard',
-  
+
   async init(api: PluginApi) {
     const { config, logger, roomManager, protocolHandler, banManager, federationManager } = api;
     const pluginConfig = api.readPluginConfig<WebDashboardPluginConfig>() ?? {};
@@ -1116,7 +1163,8 @@ const pluginModule: PluginModule = {
         ...config,
         displayIp: pluginConfig.displayIp ?? config.displayIp,
         sessionSecret: pluginConfig.sessionSecret ?? config.sessionSecret,
-        loginBlacklistDuration: pluginConfig.loginBlacklistDuration ?? config.loginBlacklistDuration,
+        loginBlacklistDuration:
+          pluginConfig.loginBlacklistDuration ?? config.loginBlacklistDuration,
         captchaProvider: pluginConfig.captchaProvider ?? config.captchaProvider,
         geetestId: pluginConfig.geetestId ?? config.geetestId,
         geetestKey: pluginConfig.geetestKey ?? config.geetestKey,
@@ -1138,15 +1186,17 @@ const pluginModule: PluginModule = {
       await instance.start();
       logger.info('[WebDashboard] Web Dashboard 插件启动成功');
     } catch (error) {
-      logger.error(`[WebDashboard] 启动失败: ${error instanceof Error ? error.message : String(error)}`);
+      logger.error(
+        `[WebDashboard] 启动失败: ${error instanceof Error ? error.message : String(error)}`,
+      );
       throw error;
     }
   },
-  
+
   async destroy() {
     await instance?.stop();
     instance = undefined;
-  }
+  },
 };
 
 export default pluginModule;
